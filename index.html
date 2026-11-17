@@ -193,6 +193,7 @@ h3{font-size:16px;font-weight:700}
 .cal .wd.sun,.cal .d.sun{color:var(--rose)}.cal .wd.sat,.cal .d.sat{color:var(--sat)}
 .cal .d{height:44px;display:grid;place-items:center;font-size:15px}
 .cal .d span{width:38px;height:38px;border-radius:50%;display:grid;place-items:center}
+.cal .d.today span{background:var(--rose-t);color:var(--rose);font-weight:700;position:relative}.cal .d.today span::after{content:'오늘';position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:700;color:var(--rose);white-space:nowrap}
 .cal .d.sel span{background:var(--rose);color:#fff;font-weight:700}
 .cal .d.past{opacity:.45}
 .picked{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px}
@@ -614,7 +615,7 @@ function sheetHTML(){const s=state.sheet;if(!s)return '';let body='';
  return `<div class="overlay" data-act="closeSheet"><div class="sheet"><div class="grab"></div>${body}</div></div>`}
 function pickerHTML(){const p=state.picker;if(!p)return '';const [Y,M]=p.month.split('-').map(Number);const first=new Date(Y,M-1,1);const days=new Date(Y,M,0).getDate();
  let cells=WD.map((w,i)=>`<div class="wd ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('')+'<div></div>'.repeat(first.getDay());
- for(let d=1;d<=days;d++){const s=`${Y}-${pad2(M)}-${pad2(d)}`;const dow=(first.getDay()+d-1)%7;cells+=`<button class="d ${dow===0?'sun':dow===6?'sat':''} ${s===p.sel?'sel':''}" data-act="pkSel" data-date="${s}"><span>${d}</span></button>`}
+ for(let d=1;d<=days;d++){const s=`${Y}-${pad2(M)}-${pad2(d)}`;const dow=(first.getDay()+d-1)%7;cells+=`<button class="d ${dow===0?'sun':dow===6?'sat':''} ${s===p.sel?'sel':''} ${s===todayStr?'today':''}" data-act="pkSel" data-date="${s}"><span>${d}</span></button>`}
  return `<div class="overlay" style="z-index:70" data-act="pkClose"><div class="sheet"><div class="grab"></div><div class="sheet-hd"><h3>${esc(p.label)} 선택</h3><button data-act="pkClose" data-force="1">${I.x}</button></div>
  <div class="cal-nav"><button class="circle" data-act="pkMonth" data-d="-12" aria-label="이전 해" style="font-size:11px;font-weight:700">-1년</button><button class="circle" data-act="pkMonth" data-d="-1">${I.chevL}</button><b>${Y}년 ${M}월</b><button class="circle" data-act="pkMonth" data-d="1">${I.chevR}</button><button class="circle" data-act="pkMonth" data-d="12" style="font-size:11px;font-weight:700">+1년</button></div>
  <div class="cal">${cells}</div><div class="picked"><span>선택한 날짜</span><b>${p.sel?fmtFull(p.sel):'-'}</b></div><button class="btn-primary" data-act="pkOk">선택 완료</button></div></div>`}
