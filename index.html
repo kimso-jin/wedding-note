@@ -459,7 +459,7 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();
   <button class="thumb" data-act="photos" aria-label="사진 보기">${photoFill(v.photos[0])}<span class="cnt">${v.photos.length}</span></button></div>
  <div class="px20 pb20"><a class="btn-outline" href="https://map.kakao.com/link/search/${encodeURIComponent(v.name||v.location||'')}" target="_blank" rel="noopener">${I.pin}카카오맵 길찾기</a></div>
  <div class="sections">
-  ${coll(k('consult'),'상담 예약 정보',kv('상담 일시',consultWhen,{strong:1}),kv('상담 일시',consultWhen,{strong:1})+kv('담당 플래너',c.planner)+kv('연락처',c.phone)+kv('방문 인원',has(c.visitors)?c.visitors+'명':''))}
+  ${coll(k('consult'),'상담 예약 정보',kv('상담 일시',consultWhen,{strong:1}),kv('상담 일시',consultWhen,{strong:1})+(c.phone?`<div class="kv"><span>연락처</span><a href="tel:${esc(c.phone.replace(/[^\d+]/g,''))}" style="font-weight:500;color:var(--rose);text-decoration:none">${esc(c.phone)}</a></div>`:kv('연락처','')))}
   <section class="card"><div class="card-hd"><h3>예식일별 견적</h3><span class="edit" data-act="edit">${I.edit}수정</span></div>${quotes||'<div class="summary none">아직 받은 견적이 없어요</div>'}<button class="dashed" data-act="addQuote">${I.plus}다른 예식일 견적 추가</button></section>
   ${coll(k('common'),'업체 공통 조건',sumLine([cm.basis,cm.changeable&&'인원 변경 '+cm.changeable,cm.vat&&'부가세 '+cm.vat]),`<div class="note">모든 예식일 견적에 똑같이 적용돼요</div>`+kv('보증인원 기준',cm.basis)+kv('인원 변경',cm.changeable)+kv('부가세',cm.vat)+kv('카드 결제 수수료',cm.cardFee)+para('패키지 구성',cm.pkg)+para('추가 비용 발생 항목',cm.extra))}
   ${coll(k('meal'),'식사',sumLine([ml.type,ml.alcohol&&'주류 '+ml.alcohol,ml.tasting==='가능'?`시식 ${has(ml.tastingCount)?ml.tastingCount+'인 ':''}가능`:ml.tasting==='불가'?'시식 불가':'']),kv('식사 형태',ml.type)+kv('주류 포함 여부',ml.alcohol)+kv('혼주 식사 공간',ml.parentsRoom)+kv('시식 가능 여부',ml.tasting?ml.tasting+(ml.tasting==='가능'&&has(ml.tastingCount)?` (${ml.tastingCount}인)`:''):''))}
@@ -484,7 +484,7 @@ function fld(label,path,o={}){const val=D(path);const P='draft.'+path;let input;
  if(o.type==='date')input=`<button type="button" class="inp" data-act="pickDate" data-path="${P}" data-label="${label}">${val?fmtFull(val):`<span class="ph">YYYY.MM.DD</span>`}</button>${I.cal}`;
  else if(o.type==='time')input=`<input class="inp" data-path="${P}" data-time inputmode="numeric" maxlength="5" placeholder="HH:MM" value="${esc(val)}">${I.clock}`;
  else if(o.type==='num')input=`<input class="inp" data-path="${P}" data-num inputmode="numeric" placeholder="${o.ph||'0'}" value="${fmtNum(val)}">${o.suf?`<span class="suf">${o.suf}</span>`:''}`;
- else input=`<input class="inp" data-path="${P}" placeholder="${esc(o.ph||'')}" value="${esc(val)}" ${o.id?`id="${o.id}"`:''}>${o.icon||''}`;
+ else input=`<input class="inp" data-path="${P}" ${o.tel?'inputmode="tel" type="tel"':''} placeholder="${esc(o.ph||'')}" value="${esc(val)}" ${o.id?`id="${o.id}"`:''}>${o.icon||''}`;
  return `<div class="fld"><span class="lbl">${label}${o.req?'<i>*</i>':''}</span><div class="box">${input}</div></div>`}
 function choice(label,path,opts){const val=D(path);return `<div class="fld"><span class="lbl">${label}</span><div class="opts">${opts.map(x=>`<button type="button" class="opt ${val===x?'on':''}" data-act="choose" data-path="draft.${path}" data-val="${x}">${x}</button>`).join('')}</div></div>`}
 function area(label,path,ph){return `<div class="fld"><span class="lbl">${label}</span><textarea class="ta" data-path="draft.${path}" placeholder="${esc(ph)}">${esc(D(path))}</textarea></div>`}
@@ -512,7 +512,7 @@ SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';
   <div class="fsec"><header><h2>상담 예약</h2><p>상담 날짜를 넣으면 메인에서 D-day로 알려드려요</p></header>
    <div class="fld"><span class="lbl">진행 상태</span><div class="seg">${Object.entries(STATUS).map(([k,s])=>`<button type="button" class="${d.status===k?'on':''}" data-act="setStatus" data-k="${k}">${s.label}</button>`).join('')}</div></div>
    ${frow(fld('상담 날짜','consult.date',{type:'date'}),fld('시간','consult.time',{type:'time'}))}
-   ${frow(fld('담당자','consult.planner',{ph:'이름'}),fld('연락처','consult.phone',{ph:'010-0000-0000'}))}${fld('방문 인원','consult.visitors',{type:'num',suf:'명'})}</div>
+   ${fld('연락처','consult.phone',{ph:'010-0000-0000',tel:1})}</div>
   <div class="fsec"><header><h2>예식일별 견적</h2><p>예식일마다 달라지는 금액만 입력해요</p></header>${quotes}<button type="button" class="dashed" data-act="formAddQuote">${I.plus}다른 예식일 견적 추가</button></div>
   <div class="fsec"><header><h2>업체 공통 조건</h2><p>예식일과 상관없이 같은 조건이에요. 한 번만 입력하면 모든 견적에 적용돼요</p></header>
    ${choice('보증인원 기준','common.basis',['양가 합산','양가 각각'])}${help('양가 합산: 양가 하객을 합쳐 보증 / 양가 각각: 신랑·신부 측 각각 보증')}
