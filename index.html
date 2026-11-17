@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>웨딩홀 노트 – 모바일 프로토타입</title>
+<title>웨딩홀 노트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
@@ -48,7 +48,7 @@ h3{font-size:16px;font-weight:700}
 .hero-sub{font-size:13px;opacity:.8}
 .hero-info{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
 .hero-info div{display:flex;align-items:center;gap:6px}.hero-info svg{width:16px;height:16px;opacity:.85}
-.hero.empty{background:#fff;color:var(--gray);border:1px dashed #D9CFC8;align-items:center;text-align:center;font-size:14px;gap:10px}
+.hero.empty{width:100%;background:#fff;color:var(--gray);border:1px dashed #D9CFC8;align-items:center;text-align:center;font-size:14px;gap:10px}
 .hero.empty::after{display:none}
 .pager{display:flex;justify-content:center;gap:5px;padding-top:12px}
 .pager i{width:6px;height:6px;border-radius:3px;background:#D9CFC8;transition:.2s}.pager i.on{width:16px;background:var(--rose)}
@@ -273,6 +273,7 @@ h3{font-size:16px;font-weight:700}
 .mcard p{font-size:14px;line-height:1.55;white-space:pre-wrap}
 .mcard .vn{font-size:12px;font-weight:700;color:var(--rose);background:var(--rose-t);padding:2px 8px;border-radius:99px}
 .linkbtn{font-size:13px;color:var(--light);text-decoration:underline;padding:24px 0;display:block;margin:0 auto}
+.lock{padding:56px 24px;display:flex;flex-direction:column;gap:16px}.lock p{font-size:14px;color:var(--gray);line-height:1.6}.lock p b{color:var(--dark)}.lock .note{font-size:12px;color:var(--light)}
 .toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(43,37,34,.92);color:#fff;font-size:13px;padding:10px 16px;border-radius:99px;z-index:80;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 </style>
@@ -368,21 +369,26 @@ function seed(){
  ];
 }
 const KEY='wedding-note-proto-v2';
-/* 저장 방식: Claude 공유 저장소(db) 우선, 쓸 수 없으면 이 기기(localStorage) */
-let venues=[];let MODE='loading';let DB=null,ASSETS=null;let loadNote='';let readOnly=false;let pendingRender=false;
+/* 저장 방식: Supabase(공유 암호로 구분) 우선, 연결이 안 되면 이 기기(localStorage) */
+const SB_URL='https://mtbydpcagptzzylntlac.supabase.co',SB_KEY='sb_publishable_PhEJeRMls1QzHBjY06JNdw_tNwvhegg',SPACE_KEY='wedding-note-space';
+let venues=[];let MODE='loading';let SB=null;let SPACE='';let loadNote='';let pendingRender=false;let lastWrite=0;const ASSETS=null;
 function loadLocal(){let l;try{l=JSON.parse(localStorage.getItem(KEY))}catch(e){}venues=Array.isArray(l)&&l.length?l:seed()}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(venues))}catch(e){toast('이 기기에 다 저장하지 못했어요 (사진 용량)')}}
-function dbErr(e){const c=e&&e.code;if(c==='invalid_argument'){readOnly=true;toast('이 링크에서는 보기만 할 수 있어요')}else if(c==='quota_exceeded')toast('저장 공간이 가득 찼어요');else if(c==='revoked')toast('접근 권한이 바뀌어 저장할 수 없어요');else toast('저장하지 못했어요. 잠시 후 다시 해주세요')}
+function sbErr(e){console.warn(e);toast('저장하지 못했어요. 인터넷 연결을 확인해주세요')}
 const chains={},timers={};
-function persist(v,delay){if(!v)return;if(MODE!=='db'){saveLocal();return}
- clearTimeout(timers[v.id]);
- const run=()=>{const body=clone(v);delete body.id;const write=()=>DB.doc('venues/'+v.id).set(body);
-  chains[v.id]=(chains[v.id]||Promise.resolve()).then(write).catch(e=>e&&e.code==='unavailable'?new Promise(r=>setTimeout(r,600+Math.random()*600)).then(write).catch(dbErr):dbErr(e))};
+function persist(v,delay){if(!v)return;if(MODE!=='sb'){saveLocal();return}
+ clearTimeout(timers[v.id]);lastWrite=Date.now();
+ const run=()=>{lastWrite=Date.now();const body=clone(v);delete body.id;delete body.createdAt;
+  const row={id:v.id,space:SPACE,data:body,created_at:v.createdAt||Date.now(),updated_at:new Date().toISOString()};
+  const write=async()=>{const {error}=await SB.from('venues').upsert(row);if(error)throw error;lastWrite=Date.now()};
+  chains[v.id]=(chains[v.id]||Promise.resolve()).then(write).catch(()=>new Promise(r=>setTimeout(r,800)).then(write)).catch(sbErr)};
  if(delay)timers[v.id]=setTimeout(run,delay);else run()}
-function removeVenueDoc(v){if(MODE!=='db'){saveLocal();return}
- (chains[v.id]||Promise.resolve()).then(()=>DB.doc('venues/'+v.id).delete()).catch(dbErr);
- if(ASSETS)v.photos.forEach(p=>{if(p.assetId)ASSETS.delete(p.assetId).catch(()=>{})})}
-const photoSrc=p=>p.assetId?'/_blob/'+p.assetId:p.src;
+function removeVenueDoc(v){if(MODE!=='sb')return;lastWrite=Date.now();
+ (chains[v.id]||Promise.resolve()).then(async()=>{const {error}=await SB.from('venues').delete().eq('id',v.id);if(error)throw error;await SB.from('photos').delete().eq('venue_id',v.id)}).catch(sbErr)}
+const photoCache={},photoPending={};let photoRenderT;
+function photoSrc(p){if(p.src)return p.src;if(!p.sb)return '';if(photoCache[p.id])return photoCache[p.id];
+ if(!photoPending[p.id]&&SB){photoPending[p.id]=1;SB.from('photos').select('data').eq('id',p.id).maybeSingle().then(({data})=>{if(data&&data.data){photoCache[p.id]=data.data;clearTimeout(photoRenderT);photoRenderT=setTimeout(softRender,150)}})}
+ return ''}
 const byId=id=>venues.find(v=>v.id===id);
 const calcQ=(v,q)=>{const meal=num(q.meal),g=num(q.minGuests),rental=num(q.rental);const totalMeal=meal&&g?meal*g:0;const vat=(v.common&&v.common.vat==='별도')?Math.round((rental+totalMeal)*0.1):0;return{totalMeal,rental,vat,total:rental+totalMeal+vat}};
 
@@ -395,7 +401,7 @@ function back(){saveScroll();const p=state.stack.pop();if(!p){state.screen='home
 function tab(screen){state.stack=[];state.screen=screen;state.params={};state.sheet=null;render()}
 function saveScroll(){const sc=$('#app .scroll');if(sc)scrollMem[skey()]=sc.scrollTop}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
-function render(){saveScroll();const app=$('#app');app.innerHTML=(SCREENS[state.screen]||SCREENS.home)()+sheetHTML()+pickerHTML();
+function render(){saveScroll();const app=$('#app');app.innerHTML=(MODE==='needKey'?SCREENS.lock:(SCREENS[state.screen]||SCREENS.home))()+sheetHTML()+pickerHTML();
  const sc=$('#app .scroll');if(sc)sc.scrollTop=scrollMem[skey()]||0;
  $('#hind').className='hind'+(state.screen==='viewer'?' light':'');
  afterRender()}
@@ -405,7 +411,7 @@ function afterRender(){const car=$('[data-carousel]');if(car){car.addEventListen
 const badge=s=>{const st=STATUS[s]||STATUS.reserved;return `<span class="badge" style="background:${st.bg};color:${st.fg}">${st.label}</span>`};
 const nav=cur=>`<nav class="nav">${[['home','홈',I.home],['schedule','일정',I.cal],['compare','비교',I.compare],['memo','메모',I.note]].map(([k,l,ic])=>`<button class="${cur===k?'on':''}" data-act="tab" data-to="${k}">${ic}${l}</button>`).join('')}</nav>`;
 const starsHTML=(r,size)=>`<div class="stars">${[1,2,3,4,5].map(i=>I.star(i<=r?'#D9A441':'#DDD5CF')).join('')}${r?`<b>${(+r).toFixed(1)}</b>`:''}<small>${r?'우리 점수':'아직 점수 없음'}</small></div>`;
-const photoFill=p=>p?(photoSrc(p)?`<div class="ph-fill"><img src="${esc(photoSrc(p))}" alt="" loading="lazy"></div>`:p.cat==='견적서'?`<div class="ph-fill doc">${I.doc}</div>`:`<div class="ph-fill" style="background:linear-gradient(135deg,${p.grad[0]},${p.grad[1]})">${I.image}</div>`):`<div class="ph-fill" style="background:linear-gradient(135deg,#EDE6E0,#CFC3BA)">${I.image}</div>`;
+const photoFill=p=>p?(photoSrc(p)?`<div class="ph-fill"><img src="${esc(photoSrc(p))}" alt="" loading="lazy"></div>`:p.cat==='견적서'?`<div class="ph-fill doc">${I.doc}</div>`:`<div class="ph-fill" style="background:linear-gradient(135deg,${(p.grad||GRADS['기타'][0])[0]},${(p.grad||GRADS['기타'][0])[1]})">${I.image}</div>`):`<div class="ph-fill" style="background:linear-gradient(135deg,#EDE6E0,#CFC3BA)">${I.image}</div>`;
 const kv=(l,v,o={})=>`<div class="kv"><span>${l}</span><b class="${has(v)?(o.strong?'strong':''):'none'}">${has(v)?esc(v):'-'}</b></div>`;
 const para=(l,v,color)=>`<div class="para"><span>${l}</span><b style="${color&&has(v)?`color:${color}`:''}">${has(v)?esc(v):'-'}</b></div>`;
 const upcoming=()=>venues.filter(v=>v.consult.date&&ddayN(v.consult.date)>=0).sort((a,b)=>(a.consult.date+a.consult.time).localeCompare(b.consult.date+b.consult.time));
@@ -421,7 +427,7 @@ function vcard(v){const q=v.quotes[0]||{};const memo=v.memos.length?v.memos[v.me
  <div><div class="vname">${esc(v.name)}</div><div class="vsub">${esc([v.hall,shortLoc(v.location)].filter(Boolean).join(' · '))}</div></div>
  <div class="grid3"><div><span>상담일</span><b>${v.consult.date?fmtMD(v.consult.date).replace(/^(\d\d)\./,'$1.')+' '+esc(v.consult.time||''):'-'}</b></div><i></i><div><span>식대</span><b>${has(q.meal)?man(q.meal):'-'}</b></div><i></i><div><span>보증인원</span><b>${has(q.minGuests)?q.minGuests+'명':'-'}</b></div></div>
  ${memo?`<div class="memo-prev">${I.memo}<p>${esc(memo)}</p></div>`:''}</article>`}
-function listHTML(){const l=filtered();return l.length?l.map(vcard).join(''):`<div class="empty-box">${state.search?'검색 결과가 없어요':'해당하는 업체가 없어요'}</div>`}
+function listHTML(){const l=filtered();return l.length?l.map(vcard).join(''):`<div class="empty-box">${state.search?'검색 결과가 없어요':venues.length?'해당하는 업체가 없어요':'아직 등록한 업체가 없어요<br>아래 \'업체 추가\'로 첫 웨딩홀을 등록해 보세요'}</div>`}
 const SCREENS={};
 SCREENS.home=()=>{const up=upcoming();const cnt=k=>k==='all'?venues.length:k==='fav'?venues.filter(v=>v.fav).length:venues.filter(v=>v.status===k).length;
  return `<div class="scroll">${statusBar()}
@@ -566,7 +572,7 @@ SCREENS.schedule=()=>{const cs=state.cal;const [Y,M]=cs.month.split('-').map(Num
 SCREENS.memo=()=>{const all=[];venues.forEach(v=>v.memos.forEach(m=>all.push({v,m})));all.sort((a,b)=>b.m.date.localeCompare(a.m.date));
  return `<div class="scroll">${statusBar()}<header class="hd"><div><div class="eyebrow">모든 업체 메모 ${all.length}개</div><h1>메모</h1></div></header>
  <div class="list px20">${all.map(({v,m})=>`<div class="mcard" data-act="open" data-id="${v.id}"><div class="row between"><span class="vn">${esc(v.name)}</span><small>${fmtMD(m.date)}</small></div><p>${esc(m.text)}</p></div>`).join('')||'<div class="empty-box">아직 메모가 없어요</div>'}</div>
- ${MODE==='db'?`<p class="note" style="text-align:center;padding:24px 20px">입력한 내용은 이 링크를 여는 모든 기기에서 똑같이 보여요</p>`:`<p class="note" style="text-align:center;padding:24px 20px 0">지금은 이 기기에만 저장돼요</p><button class="linkbtn" data-act="askReset">샘플 데이터로 되돌리기</button>`}<div style="height:20px"></div></div>${nav('memo')}`};
+ ${MODE==='sb'?`<p class="note" style="text-align:center;padding:24px 20px 0">같은 공유 암호를 입력한 기기끼리 바로 공유돼요</p><button class="linkbtn" data-act="changeSpace">공유 암호 바꾸기</button>`:`<p class="note" style="text-align:center;padding:24px 20px 0">지금은 이 기기에만 저장돼요</p><button class="linkbtn" data-act="askReset">샘플 데이터로 되돌리기</button>`}<div style="height:20px"></div></div>${nav('memo')}`};
 
 /* ===================== PHOTOS ===================== */
 SCREENS.photos=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();const cat=state.photoCat;
@@ -576,7 +582,7 @@ SCREENS.photos=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();co
  <div class="topnav"><button class="icon-btn plain" data-act="back">${I.chevL}</button><div style="text-align:center"><b>사진 ${v.photos.length}</b><div style="font-size:11px;color:var(--light)">${esc(v.name)}</div></div><span style="width:36px"></span></div>
  <div class="pchips">${['전체',...PHOTO_CATS].filter(c=>c==='전체'||cnt(c)).map(c=>`<button class="chip ${cat===c?'on':''}" data-act="pcat" data-k="${c}">${c}<small>${cnt(c)}</small></button>`).join('')}</div>
  ${Object.keys(groups).sort().map(dt=>`<div class="pgroup"><span>${fmtMD(dt)}${dt===v.consult.date?' · 상담 당일':''}</span><small>${groups[dt].length}장</small></div><div class="pgrid">${groups[dt].map(({p,i})=>`<div class="tile" data-act="view" data-i="${i}">${photoFill(p)}<span class="cat">${p.cat}</span>${p.memo?`<span class="mb">${I.memo}</span>`:''}</div>`).join('')}</div>`).join('')||'<div class="empty-box">아직 사진이 없어요<br>투어하면서 찍은 사진을 올려보세요</div>'}
- <div style="height:120px"></div></div>${MODE==='db'&&!ASSETS?'':`<button class="fab" style="right:50%;transform:translateX(50%);bottom:34px" data-act="addPhoto">${I.plus}사진 추가</button>`}`};
+ <div style="height:120px"></div></div>${false?'':`<button class="fab" style="right:50%;transform:translateX(50%);bottom:34px" data-act="addPhoto">${I.plus}사진 추가</button>`}`};
 SCREENS.viewer=()=>{const v=byId(state.params.id);const i=state.params.i;const p=v&&v.photos[i];if(!p){return SCREENS.photos()}
  const n=v.photos.length;
  return `<div class="app viewer" style="position:absolute"><div class="sbar" style="color:#fff"><span>9:41</span></div>
@@ -641,7 +647,7 @@ const A={
  askDelVenue:()=>A.askDelCard({dataset:{id:state.params.id}}),
  askDelCard:el=>{const v=byId(el.dataset.id);if(!v)return;state.sheet={type:'confirm',vid:v.id,title:`'${esc(v.name)}'을(를) 삭제할까요?`,desc:'견적, 메모, 사진까지 모두 지워지고 되돌릴 수 없어요.',ok:'delVenue',okLabel:'삭제'};render()},
  toggleManage:()=>{state.manage=!state.manage;render()},
- delVenue:()=>{const id=state.sheet&&state.sheet.vid;const dv=byId(id);if(!dv)return;removeVenueDoc(dv);venues=venues.filter(v=>v.id!==id);state.compareIds=state.compareIds.filter(i=>i!==id);if(MODE!=='db')saveLocal();state.sheet=null;
+ delVenue:()=>{const id=state.sheet&&state.sheet.vid;const dv=byId(id);if(!dv)return;removeVenueDoc(dv);venues=venues.filter(v=>v.id!==id);state.compareIds=state.compareIds.filter(i=>i!==id);if(MODE!=='sb')saveLocal();state.sheet=null;
   if(state.screen==='home'){if(!venues.length)state.manage=false;render()}else{state.manage=false;tab('home')}toast('업체를 삭제했어요')},
  addMemo:()=>{const inp=$('#quickMemo');const t=inp.value.trim();if(!t)return inp.focus();const v=byId(state.params.id);v.memos.push({id:uid(),date:todayStr,text:t});persist(v);render();toast('메모를 남겼어요')},
  delMemo:el=>{const v=byId(state.params.id);v.memos=v.memos.filter(m=>m.id!==el.dataset.mid);persist(v);render()},
@@ -685,7 +691,7 @@ const A={
  vnav:el=>{state.params.i+=+el.dataset.d;render()},
  setPcat:el=>{const v=byId(state.params.id);v.photos[state.params.i].cat=el.dataset.k;persist(v);render()},
  askDelPhoto:()=>{state.sheet={type:'confirm',title:'사진을 삭제할까요?',desc:'삭제한 사진은 되돌릴 수 없어요.',ok:'delPhoto',okLabel:'삭제'};render()},
- delPhoto:()=>{const v=byId(state.params.id);const [gone]=v.photos.splice(state.params.i,1);if(gone&&gone.assetId&&ASSETS)ASSETS.delete(gone.assetId).catch(()=>{});persist(v);state.sheet=null;if(!v.photos.length){back()}else{state.params.i=Math.min(state.params.i,v.photos.length-1);render()}},
+ delPhoto:()=>{const v=byId(state.params.id);const [gone]=v.photos.splice(state.params.i,1);if(gone&&gone.sb&&SB)SB.from('photos').delete().eq('id',gone.id).then(()=>{});persist(v);state.sheet=null;if(!v.photos.length){back()}else{state.params.i=Math.min(state.params.i,v.photos.length-1);render()}},
  addPhoto:()=>$('#fileIn').click()
 };
 const appEl=$('#app');
@@ -702,31 +708,42 @@ appEl.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||e.isCo
  if(t.id==='quickMemo'){e.preventDefault();A.addMemo()}
  if(t.classList.contains('inp')&&t.tagName==='INPUT')e.preventDefault()});
 $('#fileIn').addEventListener('change',async e=>{const v=byId(state.params.id);const files=[...e.target.files];e.target.value='';if(!v||!files.length)return;
- if(MODE==='db'&&!ASSETS){toast('사진은 편집 권한이 있는 사람만 올릴 수 있어요');return}
- toast('사진을 올리는 중이에요…');let ok=0;
+ toast('사진을 올리는 중이에요…');let ok=0,lastErr=null;
  for(const f of files){try{const cat=state.photoCat!=='전체'?state.photoCat:'홀';
-  if(MODE==='db'){const blob=await shrink(f,true);const r=await ASSETS.upload(blob);v.photos.push({id:uid(),cat,assetId:r.id,date:todayStr,memo:''})}
-  else{const src=await shrink(f,false);v.photos.push({id:uid(),cat,src,date:todayStr,memo:''})}ok++}catch(err){}}
- persist(v);render();toast(ok?`사진 ${ok}장을 올렸어요`:'사진을 올리지 못했어요')});
+  if(MODE==='sb'){const data=await shrink(f,false);const pid=uid();const {error}=await SB.from('photos').insert({id:pid,space:SPACE,venue_id:v.id,data});if(error)throw error;photoCache[pid]=data;v.photos.push({id:pid,sb:1,cat,date:todayStr,memo:''})}
+  else{const src=await shrink(f,false);v.photos.push({id:uid(),cat,src,date:todayStr,memo:''})}ok++}catch(err){lastErr=err;console.warn(err)}}
+ persist(v);render();toast(ok?`사진 ${ok}장을 올렸어요`:(lastErr&&/photos/.test(lastErr.message||'')?'사진 저장 준비가 아직 안 됐어요 (SQL 실행 필요)':'사진을 올리지 못했어요'))});
 function shrink(file,asBlob){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const img=new Image();img.onload=()=>{const m=1200;let {width:w,height:h}=img;const s=Math.min(1,m/Math.max(w,h));const c=document.createElement('canvas');c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
   if(asBlob)c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.82);else res(c.toDataURL('image/jpeg',.8))};img.onerror=rej;img.src=r.result};r.readAsDataURL(file)})}
 /* 화면 갱신: 입력 중에는 미뤘다가 입력이 끝나면 그린다 */
 function softRender(){const a=document.activeElement;const typing=a&&appEl.contains(a)&&/INPUT|TEXTAREA/.test(a.tagName);
  if(typing||state.screen==='form'||state.sheet||state.picker){pendingRender=true;return}pendingRender=false;render()}
 appEl.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender)softRender()},300));
-/* 시작: 공유 저장소 연결 */
-(async()=>{let db=null;
- try{if(window.claude&&typeof claude.use==='function')db=await claude.use('db')}catch(e){}
- if(!db){MODE='local';loadLocal();render();return}
- DB=db;try{ASSETS=await claude.use('assets')}catch(e){ASSETS=null}
- const timer=setTimeout(()=>{if(MODE==='loading'){loadNote='데이터를 아직 불러오지 못했어요. 연결을 확인해주세요';render()}},10000);
- db.collection('venues').onSnapshot(snap=>{
-  venues=snap.docs.map(d=>Object.assign(clone(d.data()),{id:d.id})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-  const first=MODE!=='db';MODE='db';if(!snap.metadata.fromCache){clearTimeout(timer);loadNote=''}
-  first?render():softRender()},
- e=>{clearTimeout(timer);if(MODE!=='db'){MODE='local';loadLocal();toast('공유 저장소에 연결하지 못해 이 기기에만 저장돼요')}else{loadNote='저장소 연결이 끊겼어요. 새로고침해 주세요'}render()});
-})();
-render();
+/* 공유 암호 화면 */
+SCREENS.lock=()=>`<div class="scroll">${statusBar()}<div class="lock"><div class="eyebrow">우리의 웨딩홀 투어</div><h1>웨딩홀 노트</h1>
+ <p>함께 쓸 사람과 정한 <b>공유 암호</b>를 입력하세요.<br>같은 암호를 입력한 기기끼리 업체·견적·메모·사진이 공유돼요.</p>
+ <div class="box"><input class="inp" id="spaceIn" type="password" placeholder="공유 암호 (6자 이상)" autocomplete="off" enterkeyhint="go"></div>
+ <button class="btn-primary" data-act="enterSpace">시작하기</button>
+ <p class="note">처음 쓰는 암호면 새 공간이 만들어져요. 암호를 잊으면 데이터를 찾을 수 없으니 꼭 기억해 두세요.</p></div></div>`;
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('wedding-note:'+t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+A.enterSpace=async()=>{const i=$('#spaceIn');const t=i?i.value.trim():'';if(t.length<6){toast('공유 암호는 6자 이상 입력해주세요');return}
+ SPACE=await sha(t);try{localStorage.setItem(SPACE_KEY,SPACE)}catch(e){}connect()};
+A.changeSpace=()=>{state.sheet={type:'confirm',title:'공유 암호를 바꿀까요?',desc:'이 기기에서 지금 공간을 닫고 암호 입력 화면으로 돌아가요. 저장된 데이터는 지워지지 않아요.',ok:'doChangeSpace',okLabel:'바꾸기'};render()};
+A.doChangeSpace=()=>{try{localStorage.removeItem(SPACE_KEY)}catch(e){}SPACE='';SB=null;venues=[];MODE='needKey';state.sheet=null;state.stack=[];state.screen='home';render()};
+appEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.target.id==='spaceIn'){e.preventDefault();A.enterSpace()}});
+let createClientFn=null;
+async function refresh(strict){if(!SB)return;const {data,error}=await SB.from('venues').select('id,data,created_at').order('created_at');
+ if(error){if(strict)throw error;return}
+ const next=data.map(r=>Object.assign({},r.data||{},{id:r.id,createdAt:r.created_at}));
+ if(JSON.stringify(next)!==JSON.stringify(venues)){venues=next;if(MODE==='sb')softRender()}}
+async function connect(){MODE='loading';loadNote='';render();
+ try{if(!createClientFn)createClientFn=(await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')).createClient;
+  SB=createClientFn(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{headers:{'x-space-key':SPACE}}});
+  await refresh(true);MODE='sb';render()}
+ catch(e){console.warn(e);SB=null;MODE='local';loadLocal();render();toast('저장소에 연결하지 못해 이 기기에만 저장돼요')}}
+setInterval(()=>{if(MODE==='sb'&&document.visibilityState==='visible'&&Date.now()-lastWrite>4000)refresh()},15000);
+document.addEventListener('visibilitychange',()=>{if(MODE==='sb'&&document.visibilityState==='visible'&&Date.now()-lastWrite>4000)refresh()});
+(()=>{let k='';try{k=localStorage.getItem(SPACE_KEY)||''}catch(e){}if(!k){MODE='needKey';render();return}SPACE=k;connect()})();
 </script>
 </body>
 </html>
