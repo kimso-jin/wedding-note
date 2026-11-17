@@ -853,11 +853,12 @@ function softRender(){const a=document.activeElement;const typing=a&&appEl.conta
 appEl.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender)softRender()},300));
 /* 카카오(다음) 주소 검색 */
 let pcLoading=null;
-function loadPostcode(){if(window.daum&&daum.Postcode)return Promise.resolve();if(pcLoading)return pcLoading;
- pcLoading=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';sc.onload=res;sc.onerror=()=>{pcLoading=null;rej()};document.head.appendChild(sc)});return pcLoading}
+const PostcodeCls=()=>(window.kakao&&window.kakao.Postcode)||(window.daum&&window.daum.Postcode)||null;
+function loadPostcode(){if(PostcodeCls())return Promise.resolve();if(pcLoading)return pcLoading;
+ pcLoading=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';sc.onload=res;sc.onerror=()=>{pcLoading=null;rej()};document.head.appendChild(sc)});return pcLoading}
 function mountPostcode(){const wrap=$('#pcWrap');if(!wrap)return;
  loadPostcode().then(()=>{if(!$('#pcWrap'))return;wrap.innerHTML='';
-  new daum.Postcode({width:'100%',height:'100%',
+  const PC=PostcodeCls();if(!PC)throw new Error('postcode');new PC({width:'100%',height:'100%',
    oncomplete:data=>{const addr=data.roadAddress||data.jibunAddress||data.address;const b=data.buildingName;
     state.draft.location=addr+(b?` (${b})`:'');if(b&&!state.draft.name.trim())state.draft.name=b;state.sheet=null;render();toast('위치를 입력했어요')}
   }).embed(wrap,{q:(state.draft.name||'').trim(),autoClose:false})})
