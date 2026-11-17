@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>웨딩홀 노트 – 모바일 프로토타입</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{--dark:#2B2522;--gray:#8A817C;--light:#A39A94;--ph:#B8AFA9;--rose:#A85C66;--rose-t:#F6E6E8;--rose-bg:#FBF1F2;--bg:#F8F5F2;--line:#ECE5DF;--track:#EFE9E4;--sat:#5B7BA8;--green:#4F7358;--green-t:#E4EDE6;--amber:#9A7230;--amber-t:#F5ECDB;--gold:#D9A441}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo',sans-serif;background:#E7E1DC;color:var(--dark);letter-spacing:-0.015em;display:flex;align-items:center;justify-content:center;min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;letter-spacing:inherit}
+input,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+svg{display:block;flex:none}
+.device{width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;background:var(--bg);box-shadow:0 30px 80px rgba(60,40,30,.25),0 0 0 10px #1d1a19,0 0 0 11px #3a3533}
+@media (max-width:500px){body{display:block;background:var(--bg)}.device{width:100vw;height:100dvh;border-radius:0;box-shadow:none}.sbar,.hind{display:none!important}.scroll{padding-top:env(safe-area-inset-top)}}
+.app{position:absolute;inset:0;display:flex;flex-direction:column}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:relative}
+.scroll::-webkit-scrollbar{display:none}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px 10px 30px;font-weight:700;font-size:15px}
+.hind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;border-radius:3px;background:var(--dark);transform:translateX(-50%);z-index:60;pointer-events:none}
+.hind.light{background:#fff}
+.row{display:flex;align-items:center}.between{justify-content:space-between}.gap4{gap:4px}.gap6{gap:6px}.gap8{gap:8px}.gap10{gap:10px}
+.px20{padding-left:20px;padding-right:20px}.pb12{padding-bottom:12px}.pb20{padding-bottom:20px}
+.rose{color:var(--rose)}
+.hd{display:flex;justify-content:space-between;align-items:center;padding:12px 20px 20px}
+.eyebrow{font-size:13px;font-weight:500;color:var(--rose)}
+h1{font-size:24px;font-weight:700;line-height:1.35}
+h2{font-size:18px;font-weight:700}
+h3{font-size:16px;font-weight:700}
+.icon-btn{width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
+.icon-btn.plain{background:none;border:0;width:36px}
+.icon-btn svg{width:20px;height:20px}.icon-btn.plain svg{width:24px;height:24px}
+.search{width:100%;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;padding:0 14px;font-size:15px;outline:none}
+.search:focus,.inp:focus,.ta:focus{border-color:var(--rose)}
+/* carousel */
+.carousel{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 20px;scrollbar-width:none;scroll-padding:0 20px}
+.carousel::-webkit-scrollbar{display:none}
+.hero{flex:0 0 calc(100% - 28px);scroll-snap-align:start;border-radius:20px;padding:20px 20px 20px;color:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;cursor:pointer;background:linear-gradient(135deg,#B66B74,#8F4A54)}
+.carousel.single .hero{flex-basis:100%}
+.hero.alt{background:linear-gradient(135deg,#9C7A86,#6E5260)}
+.hero::after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.08);right:-60px;top:-60px}
+.dday{background:rgba(255,255,255,.22);font-size:12px;font-weight:700;border-radius:99px;padding:2px 9px}
+.hero-label{font-size:13px;font-weight:500;opacity:.9}
+.hero-name{font-size:22px;font-weight:700}
+.hero-sub{font-size:13px;opacity:.8}
+.hero-info{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
+.hero-info div{display:flex;align-items:center;gap:6px}.hero-info svg{width:16px;height:16px;opacity:.85}
+.hero.empty{background:#fff;color:var(--gray);border:1px dashed #D9CFC8;align-items:center;text-align:center;font-size:14px;gap:10px}
+.hero.empty::after{display:none}
+.pager{display:flex;justify-content:center;gap:5px;padding-top:12px}
+.pager i{width:6px;height:6px;border-radius:3px;background:#D9CFC8;transition:.2s}.pager i.on{width:16px;background:var(--rose)}
+.sec-hd{display:flex;justify-content:space-between;align-items:center;padding:24px 20px 12px}
+.sort{display:flex;align-items:center;gap:2px;font-size:13px;font-weight:500;color:var(--gray)}.sort svg{width:16px;height:16px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:16px;scrollbar-width:none}
+.chip{flex:none;display:flex;gap:4px;align-items:center;padding:8px 14px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:500}
+.chip small{color:var(--light);font-size:13px}
+.chip.on{background:var(--dark);border-color:var(--dark);color:#fff}.chip.on small{color:#C9C0BA}
+.list{display:flex;flex-direction:column;gap:12px}
+.vcard{background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 12px rgba(64,46,38,.06);cursor:pointer}
+.badge{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:99px;line-height:1.45}
+.heart svg{width:22px;height:22px;color:#C9C0BA}.heart.on svg{color:var(--rose);fill:var(--rose)}
+.vname{font-size:18px;font-weight:700}
+.vsub{font-size:13px;color:var(--gray)}
+.grid3{display:flex;align-items:center;background:var(--bg);border-radius:12px;padding:12px 4px}
+.grid3>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.grid3 span{font-size:11px;color:var(--light)}.grid3 b{font-size:13px;font-weight:500}
+.grid3 i{width:1px;height:28px;background:var(--line)}
+.memo-prev{display:flex;gap:6px;color:var(--gray);font-size:13px;line-height:1.5}
+.memo-prev svg{width:16px;height:16px;color:var(--light);margin-top:2px}
+.memo-prev p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty-box{text-align:center;color:var(--light);font-size:14px;padding:40px 0}
+.fab{position:absolute;right:20px;bottom:100px;z-index:20;display:flex;align-items:center;gap:6px;background:var(--dark);color:#fff;font-weight:700;font-size:15px;padding:14px 20px 14px 16px;border-radius:99px;box-shadow:0 6px 16px rgba(43,37,34,.25)}
+.fab svg{width:20px;height:20px}
+.nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:10px 8px 30px;flex:none;z-index:15}
+@media (max-width:500px){.nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}.fab{bottom:calc(84px + env(safe-area-inset-bottom))}}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:500;color:#B3AAA4}
+.nav button svg{width:22px;height:22px}.nav button.on{color:var(--rose);font-weight:700}
+/* detail */
+.topnav{display:flex;justify-content:space-between;align-items:center;padding:4px 12px 4px 8px;min-height:48px}
+.topnav b{font-size:16px}
+.d-head{display:flex;align-items:center;gap:16px;padding:12px 20px 20px}
+.d-info{flex:1;display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.stars{display:flex;align-items:center;gap:2px;font-size:14px}.stars svg{width:18px;height:18px}.stars b{margin-left:4px}.stars small{color:var(--light);font-size:13px;margin-left:4px}
+.thumb{width:88px;height:88px;border-radius:16px;overflow:hidden;position:relative;flex:none;box-shadow:0 2px 8px rgba(64,46,38,.08)}
+.thumb .cnt{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;font-weight:500;padding:1px 6px;border-radius:99px}
+.ph-fill{width:100%;height:100%;display:grid;place-items:center;position:relative}
+.ph-fill svg{width:26px;height:26px;color:#fff;opacity:.7}
+.ph-fill.doc{background:#fff!important}.ph-fill.doc svg{color:#C9C0BA;opacity:1;width:30px;height:30px}
+.ph-fill img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.btn-outline{display:flex;justify-content:center;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 0;font-size:13px;font-weight:500;text-decoration:none;color:var(--dark)}
+.btn-outline svg{width:18px;height:18px}
+.sections{display:flex;flex-direction:column;gap:12px;padding:0 20px}
+.card{background:#fff;border-radius:16px;padding:18px 16px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 12px rgba(64,46,38,.05)}
+.card-hd{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.card-hd .acts{display:flex;align-items:center;gap:12px}
+.toggle,.edit{display:flex;align-items:center;gap:2px;font-size:12px;font-weight:500;color:var(--gray)}
+.edit{color:var(--light)}.toggle svg,.edit svg{width:15px;height:15px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:5px 0;font-size:14px}
+.kv span{color:var(--gray);flex:none}.kv b{font-weight:500;text-align:right}.kv b.strong{font-weight:700}.kv b.none{color:#C2BAB4;font-weight:400}
+.para{padding:6px 0;font-size:14px;display:flex;flex-direction:column;gap:3px}.para span{color:var(--gray)}.para b{font-weight:500;line-height:1.5}
+.summary{font-size:14px;font-weight:500}.summary.none{color:#C2BAB4;font-weight:400}
+.note{font-size:12px;color:var(--light)}
+.quote{background:var(--bg);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.q-hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px}
+.qno{background:var(--rose);color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;margin-right:6px}
+.q-hd b{font-size:15px}.q-hd small{font-size:12px;color:var(--light)}
+.divider{height:1px;background:var(--line);margin:6px 0}
+.total{background:#fff;border-radius:10px;padding:12px 14px;margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.total .row b:last-child{color:var(--rose);font-size:18px}.total small{font-size:12px;color:var(--gray)}
+.dashed{display:flex;justify-content:center;align-items:center;gap:6px;border:1px dashed #D9CFC8;border-radius:12px;padding:13px 0;font-size:14px;font-weight:500;color:var(--rose);background:#fff;width:100%}
+.dashed svg{width:16px;height:16px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:500;padding:5px 10px;border-radius:8px}
+.tag.pro{background:var(--green-t);color:var(--green)}.tag.con{background:var(--amber-t);color:var(--amber)}
+.tag button{font-size:14px;line-height:1;color:inherit;opacity:.8}
+.del-btn{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:#C2554A;background:#FBEDEB;border-radius:99px;padding:5px 10px}.del-btn svg{width:14px;height:14px}
+.del-link{display:flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:14px 0;font-size:13px;font-weight:500;color:#C2554A}.del-link svg{width:15px;height:15px}
+.memo-item{display:flex;flex-direction:column;gap:4px;padding:4px 0}
+.memo-item+.memo-item{border-top:1px solid var(--line);padding-top:12px}
+.memo-item small{font-size:12px;color:var(--light);font-weight:500;display:flex;justify-content:space-between}
+.memo-item p{font-size:14px;line-height:1.55;white-space:pre-wrap}
+.memo-bar{display:flex;gap:8px;align-items:center;background:#fff;border-top:1px solid var(--line);padding:10px 16px 34px;flex:none}
+@media (max-width:500px){.memo-bar{padding-bottom:calc(10px + env(safe-area-inset-bottom))}}
+.memo-bar input{flex:1;height:44px;border-radius:22px;background:var(--bg);border:0;padding:0 16px;font-size:14px;outline:none}
+.send{width:44px;height:44px;border-radius:50%;background:var(--rose);color:#fff;display:grid;place-items:center}.send svg{width:20px;height:20px}
+/* form */
+.form{display:flex;flex-direction:column;gap:32px;padding:16px 20px 32px}
+.fsec{display:flex;flex-direction:column;gap:16px}
+.fsec>header h2{font-size:17px}.fsec>header p{font-size:13px;color:var(--light);margin-top:2px}
+.fld{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
+.lbl{font-size:13px;font-weight:500;color:var(--gray)}.lbl i{color:var(--rose);font-style:normal;font-weight:700;margin-left:2px}
+.box{height:48px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 14px;min-width:0}
+.box:focus-within{border-color:var(--rose)}
+.box.ro{background:#F1ECE7;border-color:transparent}
+.inp{flex:1;min-width:0;border:0;outline:none;background:none;font-size:15px;height:100%;text-align:left;display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inp::placeholder,.inp .ph{color:var(--ph)}
+.box .suf{font-size:15px;font-weight:500;color:var(--gray);flex:none}
+.box svg{width:20px;height:20px;color:var(--light)}
+.box.err{border-color:#D46A5B}
+.frow{display:flex;gap:10px}
+.helper{font-size:12px;color:var(--light);margin-top:-8px}
+.opts{display:flex;gap:8px}
+.opt{flex:1;height:48px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:14px;white-space:nowrap;padding:0 4px}
+.opt.on{background:var(--rose-bg);border-color:var(--rose);color:var(--rose);font-weight:700}
+.seg{display:flex;gap:4px;background:var(--track);border-radius:12px;padding:4px}
+.seg button{flex:1;padding:9px 0;border-radius:9px;font-size:14px;font-weight:500;color:var(--gray)}
+.seg button.on{background:#fff;color:var(--rose);font-weight:700;box-shadow:0 1px 4px rgba(50,38,30,.08)}
+.ta{width:100%;min-height:92px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px;font-size:15px;outline:none;resize:none;line-height:1.5}
+.ta::placeholder{color:var(--ph)}
+.qbox{background:#FCFAF8;border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:16px}
+.qbox-hd{display:flex;justify-content:space-between;align-items:center}
+.qbox-hd b{font-size:14px}.qbox-hd .rm{font-size:12px;color:var(--light)}
+.est{background:var(--rose-bg);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.est .top{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid rgba(168,92,102,.15)}
+.est .top b:first-child{font-size:15px}.est .top b:last-child{font-size:20px;color:var(--rose)}
+.est .r{display:flex;justify-content:space-between;font-size:13px;color:var(--gray)}
+.osec{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.osec-hd{width:100%;display:flex;align-items:center;gap:12px;padding:16px;text-align:left}
+.osec-hd>div{flex:1}.osec-hd b{font-size:16px;display:block}.osec-hd small{font-size:12px;color:var(--light)}
+.prog{font-size:12px;font-weight:500;color:var(--gray);background:var(--bg);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.prog.full{background:var(--green-t);color:var(--green)}
+.osec-hd svg{width:18px;height:18px;color:var(--gray);transition:.2s}
+.osec.open .osec-hd svg{transform:rotate(180deg)}
+.osec-body{display:none;padding:0 16px 20px;flex-direction:column;gap:16px}
+.osec.open .osec-body{display:flex}
+.rating{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 16px 18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.rating .st{display:flex;gap:8px}.rating .st button svg{width:36px;height:36px}
+.rating p{font-size:13px;color:var(--gray)}
+.tagbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-height:48px}
+.tagbox input{flex:1;min-width:120px;border:0;outline:none;font-size:14px;background:none;height:30px}
+.tagbox input::placeholder{color:var(--ph)}
+.sugg{display:flex;flex-wrap:wrap;gap:6px}
+.sugg button{font-size:12px;color:var(--gray);border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 10px}
+.cta{background:#fff;border-top:1px solid var(--line);padding:12px 20px 34px;flex:none}
+@media (max-width:500px){.cta{padding-bottom:calc(12px + env(safe-area-inset-bottom))}}
+.btn-primary{width:100%;height:52px;border-radius:14px;background:var(--rose);color:#fff;font-size:16px;font-weight:700}
+.btn-sub{width:100%;height:52px;border-radius:14px;background:var(--track);font-size:16px;font-weight:700;color:var(--dark)}
+/* sheet */
+.overlay{position:absolute;inset:0;background:rgba(30,25,22,.45);z-index:50;display:flex;flex-direction:column;justify-content:flex-end;animation:fade .2s}
+.sheet{background:#fff;border-radius:24px 24px 0 0;padding:10px 20px 40px;display:flex;flex-direction:column;gap:16px;max-height:88%;overflow-y:auto;animation:up .25s ease-out}
+@media (max-width:500px){.sheet{padding-bottom:calc(24px + env(safe-area-inset-bottom))}}
+.grab{width:36px;height:4px;border-radius:2px;background:#DDD5CF;align-self:center}
+.sheet-hd{display:flex;justify-content:space-between;align-items:center}.sheet-hd h3{font-size:18px}.sheet-hd svg{width:22px;height:22px}
+@keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(40px);opacity:.5}}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;padding:0 4px}
+.cal-nav button.circle{width:36px;height:36px;border-radius:50%;background:var(--bg);display:grid;place-items:center}
+.cal-nav svg{width:18px;height:18px}.cal-nav b{font-size:17px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px;text-align:center}
+.cal .wd{font-size:12px;font-weight:500;color:var(--light);padding:6px 0 8px}
+.cal .wd.sun,.cal .d.sun{color:var(--rose)}.cal .wd.sat,.cal .d.sat{color:var(--sat)}
+.cal .d{height:44px;display:grid;place-items:center;font-size:15px}
+.cal .d span{width:38px;height:38px;border-radius:50%;display:grid;place-items:center}
+.cal .d.sel span{background:var(--rose);color:#fff;font-weight:700}
+.cal .d.past{opacity:.45}
+.picked{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px}
+.picked span{font-size:14px;color:var(--gray)}.picked b{font-size:16px;color:var(--rose)}
+.menu-item{display:flex;align-items:center;gap:10px;padding:14px 4px;font-size:15px;font-weight:500;width:100%;text-align:left}
+.menu-item svg{width:20px;height:20px}.menu-item.danger{color:#C2554A}
+/* compare */
+.sel-chips{display:flex;gap:8px;padding:0 20px 20px;flex-wrap:wrap}
+.sel-chip{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:7px 10px 7px 12px;font-size:13px;font-weight:500}
+.sel-chip svg{width:14px;height:14px;color:var(--light)}
+.sel-add{width:34px;height:34px;border-radius:50%;border:1px dashed #D9CFC8;background:#fff;display:grid;place-items:center}.sel-add svg{width:16px;height:16px;color:var(--gray)}
+.insights{display:flex;gap:8px;padding:0 20px 16px}
+.ins{flex:1;background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 12px rgba(64,46,38,.05);display:flex;flex-direction:column;gap:2px;min-width:0}
+.ins small{font-size:11px;font-weight:500;color:var(--light)}.ins b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins b.rose{color:var(--rose)}
+.ctable{margin:0 20px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(64,46,38,.05)}
+.ctable table{width:100%;border-collapse:collapse;table-layout:fixed}
+.ctable th{background:#FBF8F6;padding:16px 4px 14px;font-size:14px;vertical-align:top;cursor:pointer}
+.ctable th:first-child{width:78px}
+.ctable th .badge{font-size:11px;padding:2px 8px;margin-top:6px}
+.ctable td{border-top:1px solid var(--line);padding:12px 4px;font-size:14px;font-weight:500;text-align:center;word-break:keep-all}
+.ctable td:first-child{text-align:left;padding-left:14px;font-size:12px;color:var(--gray)}
+.ctable td.best{background:var(--rose-bg);color:var(--rose);font-weight:700}
+.ctable td.dim{color:#C2BAB4;font-weight:400}.ctable td.small{font-size:12px;color:var(--gray);font-weight:400}
+.legend{display:flex;gap:6px;align-items:center;padding:12px 22px;font-size:12px;color:var(--light)}
+.legend i{width:10px;height:10px;border-radius:3px;background:var(--rose-bg);border:1px solid rgba(168,92,102,.4)}
+/* schedule */
+.calcard{margin:0 20px;background:#fff;border-radius:20px;padding:16px 12px 12px;box-shadow:0 2px 12px rgba(64,46,38,.05)}
+.calcard .cal-nav{padding:0 6px 8px}.calcard .cal-nav b{font-size:16px}
+.calcard .cal-nav button svg{width:20px;height:20px;color:var(--gray)}
+.calcard .d{height:auto;padding:2px 0 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px}
+.calcard .d span{width:34px;height:34px}
+.calcard .d.today span{border:1.5px solid var(--dark);font-weight:700;color:var(--dark)}
+.calcard .d .dot{width:5px;height:5px;border-radius:50%}
+.calcard .d.past{opacity:1;color:#C2BAB4}.calcard .d.past.sun{color:#D4A9AE}.calcard .d.past.sat{color:#A9B9D1}
+.lg{display:flex;justify-content:center;gap:12px;padding-top:8px;font-size:11px;color:var(--gray)}
+.lg span{display:flex;align-items:center;gap:4px}.lg i{width:6px;height:6px;border-radius:50%}
+.vtoggle{display:flex;gap:2px;background:var(--track);border-radius:12px;padding:3px}
+.vtoggle button{width:36px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--light)}
+.vtoggle button.on{background:#fff;color:var(--dark)}.vtoggle svg{width:18px;height:18px}
+.stitle{display:flex;gap:6px;align-items:center;padding:24px 20px 10px;font-size:16px;font-weight:700}
+.sitem{display:flex;align-items:center;gap:14px;background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 12px rgba(64,46,38,.05);cursor:pointer;border:1.5px solid transparent}
+.sitem.sel{border-color:rgba(168,92,102,.5)}.sitem.past{opacity:.75}
+.sitem .dc{width:44px;text-align:center}.sitem .dc b{font-size:22px;display:block;line-height:1.3}.sitem .dc small{font-size:12px;font-weight:500}
+.sitem .bar{width:3px;height:44px;border-radius:2px}
+.sitem .bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.sitem .tr{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.sitem .tr .badge{font-size:11px;padding:1px 7px}.sitem .tr em{font-style:normal;font-size:11px;color:var(--gray)}
+.sitem .nm{font-size:16px;font-weight:700}.sitem .sb{font-size:12px;color:var(--gray)}
+.sitem>svg{width:18px;height:18px;color:#C9C0BA}
+/* photos */
+.pchips{display:flex;gap:5px;padding:8px 16px 14px;overflow-x:auto;scrollbar-width:none}
+.pchips .chip{padding:6px 9px;gap:2px}
+.pgroup{display:flex;justify-content:space-between;padding:10px 16px 8px;font-size:13px;font-weight:700}.pgroup small{font-weight:400;color:var(--light);font-size:12px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.tile{aspect-ratio:1;position:relative;overflow:hidden;cursor:pointer}
+.tile .cat{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.35);color:#fff;font-size:10px;font-weight:500;padding:2px 6px;border-radius:6px}
+.tile .mb{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center}.tile .mb svg{width:12px;height:12px;color:var(--rose)}
+.tile .ph-fill.doc{border:1px solid var(--line)}
+.viewer{background:#111010;color:#fff}
+.viewer .sbar{color:#fff}
+.v-stage{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;min-height:0}
+.v-photo{width:100%;aspect-ratio:4/3;position:relative}
+.v-photo .ph-fill svg{width:40px;height:40px}
+.v-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#fff;z-index:2}
+.v-arrow svg{width:20px;height:20px}.v-arrow.l{left:10px}.v-arrow.r{right:10px}
+.v-dots{display:flex;gap:5px;padding-top:16px;align-items:center}.v-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.35)}.v-dots i.on{width:7px;height:7px;background:#fff}
+.v-panel{background:#1E1C1B;border-radius:20px 20px 0 0;padding:18px 20px 40px;display:flex;flex-direction:column;gap:12px;flex:none}
+.v-cats{display:flex;gap:6px;flex-wrap:wrap}
+.v-cats button{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.08);color:#B3AAA4}
+.v-cats button.on{background:#fff;color:var(--dark);font-weight:700}
+.v-panel small{font-size:12px;color:#B3AAA4}
+.v-panel textarea{background:rgba(255,255,255,.06);border:0;border-radius:12px;color:#fff;padding:12px;font-size:14px;min-height:64px;resize:none;outline:none;line-height:1.5}
+.v-panel textarea::placeholder{color:#7C7470}
+.viewer .topnav svg{color:#fff}
+/* memo tab */
+.mcard{background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 2px 12px rgba(64,46,38,.05);display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.mcard .row small{font-size:12px;color:var(--light)}
+.mcard p{font-size:14px;line-height:1.55;white-space:pre-wrap}
+.mcard .vn{font-size:12px;font-weight:700;color:var(--rose);background:var(--rose-t);padding:2px 8px;border-radius:99px}
+.linkbtn{font-size:13px;color:var(--light);text-decoration:underline;padding:24px 0;display:block;margin:0 auto}
+.toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(43,37,34,.92);color:#fff;font-size:13px;padding:10px 16px;border-radius:99px;z-index:80;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="device"><div class="app" id="app"></div><div class="hind" id="hind"></div><div class="toast" id="toast"></div></div>
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<script>
+/* ===================== utils ===================== */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD=['일','월','화','수','목','금','토'];
+const pad2=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const parseD=s=>s?new Date(s+'T00:00:00'):null;
+const TODAY=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})();
+const todayStr=ymd(TODAY);
+const fmtMD=s=>{const d=parseD(s);return d?`${pad2(d.getMonth()+1)}.${pad2(d.getDate())} (${WD[d.getDay()]})`:''};
+const fmtFull=s=>{const d=parseD(s);return d?`${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())} (${WD[d.getDay()]})`:''};
+const fmtKor=s=>{const d=parseD(s);return d?`${d.getMonth()+1}월 ${d.getDate()}일 (${WD[d.getDay()]})`:''};
+const fmtTime=t=>{if(!t||!/^\d{2}:\d{2}$/.test(t))return t||'';const h=+t.slice(0,2);return `${h<12?'오전':'오후'} ${(h%12)||12}:${t.slice(3)}`};
+const ddayN=s=>Math.round((parseD(s)-TODAY)/864e5);
+const dday=s=>{const n=ddayN(s);return n===0?'D-DAY':n>0?`D-${n}`:`D+${-n}`};
+const num=v=>(v===''||v==null||isNaN(+v))?0:+v;
+const has=v=>v!==''&&v!=null&&!(Array.isArray(v)&&!v.length);
+const fmtNum=n=>has(n)?Number(n).toLocaleString('ko-KR'):'';
+const won=n=>has(n)?Number(n).toLocaleString('ko-KR')+'원':'';
+const man=n=>{if(!has(n))return '';n=+n;if(n<10000)return n.toLocaleString('ko-KR')+'원';const m=Math.round(n/1000)/10;return m.toLocaleString('ko-KR',{maximumFractionDigits:1})+'만원'};
+const getP=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
+const setP=(o,p,v)=>{const ks=p.split('.');let a=o;ks.slice(0,-1).forEach(k=>{if(a[k]==null)a[k]={};a=a[k]});a[ks.at(-1)]=v};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const shortLoc=s=>(s||'').replace(/^서울(특별시)?\s*/,'');
+
+/* ===================== icons ===================== */
+const sv=(p,o='')=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ${o}>${p}</svg>`;
+const I={
+ search:sv('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),bell:sv('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
+ cal:sv('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),pin:sv('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'),
+ plus:sv('<path d="M12 5v14M5 12h14"/>',`stroke-width="2"`),home:sv('<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'),
+ compare:sv('<rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="18" rx="1.5"/>'),note:sv('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/>'),
+ heart:sv('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>'),
+ chevL:sv('<path d="m15 18-6-6 6-6"/>'),chevR:sv('<path d="m9 18 6-6-6-6"/>'),chevD:sv('<path d="m6 9 6 6 6-6"/>',`stroke-width="2"`),chevU:sv('<path d="m18 15-6-6-6 6"/>',`stroke-width="2"`),
+ memo:sv('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'),more:sv('<circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/>'),
+ x:sv('<path d="M18 6 6 18M6 6l12 12"/>'),edit:sv('<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),arrowUp:sv('<path d="M12 19V5M5 12l7-7 7 7"/>',`stroke-width="2"`),
+ clock:sv('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),image:sv('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>'),
+ doc:sv('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/>'),list:sv('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+ trash:sv('<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
+ star:(c)=>`<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="${c}" stroke="${c}" stroke-width="1.5" stroke-linejoin="round"/></svg>`
+};
+const statusBar=(light)=>`<div class="sbar" style="${light?'color:#fff':''}"><span>9:41</span><svg width="68" height="12" viewBox="0 0 68 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="6" width="3" height="6" rx="1" fill="currentColor"/><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/><path d="M24 4.5a10 10 0 0 1 13 0M26.5 7.2a6 6 0 0 1 8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="30.5" cy="10" r="1.3" fill="currentColor"/><rect x="42" y="0.5" width="22" height="11" rx="3" stroke="currentColor" stroke-opacity=".4"/><rect x="44" y="2.5" width="18" height="7" rx="1.5" fill="currentColor"/></svg></div>`;
+
+/* ===================== data ===================== */
+const STATUS={reserved:{label:'상담예약',bg:'#F6E6E8',fg:'#A85C66'},done:{label:'상담완료',bg:'#E4EDE6',fg:'#4F7358'},hold:{label:'보류',bg:'#F5ECDB',fg:'#9A7230'}};
+const PHOTO_CATS=['홀','신부대기실','연회장','견적서','기타'];
+const GRADS={'홀':[['#E9D9CF','#C9A99A'],['#EFE4DA','#D2B8A6'],['#E3D3C8','#B89383'],['#F0E6DE','#CDB2A1'],['#E7DBD2','#BFA393']],'신부대기실':[['#F2E3E3','#D7AFB3'],['#EEDDDD','#CFA2A7']],'연회장':[['#E6E1D6','#B8AE97'],['#E9E4DA','#C1B7A2'],['#E2DCD0','#AFA48C']],'기타':[['#E8E3DF','#BDB3AB']]};
+const SUG_PROS=['채광 좋음','주차 넉넉','버진로드 길어요','동선 편함','대기실 넓음','식사 맛있음'];
+const SUG_CONS=['천장 낮음','주차 협소','식사 아쉬움','대기실 좁음','엘리베이터 대기'];
+const emptyQuote=()=>({id:uid(),weddingDate:'',weddingTime:'',rental:'',meal:'',minGuests:'',promo:'',received:todayStr});
+const emptyVenue=()=>({id:uid(),name:'',hall:'',location:'',status:'reserved',fav:false,rating:0,
+ consult:{date:'',time:'',planner:'',phone:'',visitors:''},quotes:[emptyQuote()],
+ common:{basis:'',changeable:'',pkg:'',extra:'',vat:'',cardFee:''},meal:{type:'',alcohol:'',parentsRoom:'',tasting:'',tastingCount:''},
+ hallInfo:{mood:'',capacity:'',lobby:'',flowers:'',wreath:''},parking:{spots:'',freeHours:'',parentsParking:'',convenience:'',transit:''},
+ payment:{deposit:'',middle:'',balance:'',refund:''},pros:[],cons:[],memos:[],photos:[]});
+function seed(){
+ const mk=(o)=>{const v=emptyVenue();Object.keys(o).forEach(k=>{if(o[k]&&typeof o[k]==='object'&&!Array.isArray(o[k])&&v[k]&&typeof v[k]==='object'&&!Array.isArray(v[k]))Object.assign(v[k],o[k]);else v[k]=o[k]});return v};
+ const ph=(cat,i,date,memo='')=>({id:uid(),cat,grad:(GRADS[cat]||GRADS['기타'])[i%((GRADS[cat]||GRADS['기타']).length)],src:'',date,memo});
+ return [
+  mk({id:'v1',name:'더채플앳청담',hall:'커티지홀',location:'서울 강남구 청담동',status:'reserved',consult:{date:'2026-11-22',time:'14:00'},
+   quotes:[{id:uid(),weddingDate:'',weddingTime:'',rental:'',meal:85000,minGuests:200,promo:'',received:''}],meal:{type:'코스'},parking:{spots:250},hallInfo:{mood:'밝은 홀'},
+   memos:[{id:uid(),date:'2026-11-17',text:'계약금 조건, 혼주 대기실 크기, 꽃장식 업그레이드 비용 물어보기'}]}),
+  mk({id:'v2',name:'아펠가모 반포',hall:'라로브홀',location:'서울 서초구 반포동',status:'done',fav:true,rating:4,
+   consult:{date:'2026-11-15',time:'11:00',planner:'이수민 실장',phone:'02-1234-5678',visitors:2},
+   quotes:[{id:uid(),weddingDate:'2027-05-22',weddingTime:'11:00',rental:0,meal:78000,minGuests:250,promo:'이번 주 가계약 시 식대 3% 할인',received:'2026-11-15'},
+           {id:uid(),weddingDate:'2027-06-12',weddingTime:'13:00',rental:0,meal:72000,minGuests:250,promo:'',received:'2026-11-15'}],
+   common:{basis:'양가 합산',changeable:'가능',pkg:'기본 연출, 원판 촬영, 폐백실 이용, 신부대기실',extra:'생화 업그레이드 80만원, 본식 영상 촬영 별도',vat:'포함',cardFee:'없음'},
+   meal:{type:'뷔페',alcohol:'별도',parentsRoom:'별도 제공',tasting:'가능',tastingCount:2},
+   hallInfo:{mood:'밝은 홀',capacity:300,lobby:'대',flowers:'생화 · 버진로드 + 단상 장식',wreath:'불가'},
+   parking:{spots:400,freeHours:2,parentsParking:'있음',convenience:'좋음',transit:'7호선 반포역 도보 5분, 셔틀 운행'},
+   payment:{deposit:1000000,middle:0,balance:18500000,refund:'예식 90일 전 취소 시 계약금 전액 환불'},
+   pros:['채광 좋음','버진로드 길어요','주차 넉넉','폐백실 별도','신부대기실 넓음'],cons:['식사 뷔페만 가능','엘리베이터 대기'],
+   memos:[{id:uid(),date:'2026-11-15',text:'버진로드 길고 채광이 정말 좋음. 하객 동선 편하고 주차 400대. 단, 식사는 뷔페만 가능해서 부모님께 여쭤봐야 함.'},
+          {id:uid(),date:'2026-11-16',text:'부모님도 홀 분위기 마음에 들어하심. 5월 토요일 1부는 이번 주까지 가계약하면 식대 3% 할인 가능하다고 함.'}],
+   photos:[ph('홀',0,'2026-11-15'),ph('홀',1,'2026-11-15','신부 입장 동선이 길어서 좋음'),ph('홀',2,'2026-11-15','버진로드 길이 약 20m. 오전 예식이면 창가 쪽 채광이 좋아요'),ph('홀',3,'2026-11-15'),ph('홀',4,'2026-11-15'),
+     ph('신부대기실',0,'2026-11-15'),ph('신부대기실',1,'2026-11-15'),ph('연회장',0,'2026-11-15'),ph('연회장',1,'2026-11-15'),ph('연회장',2,'2026-11-16'),ph('견적서',0,'2026-11-16'),ph('견적서',0,'2026-11-16')]}),
+  mk({id:'v3',name:'루벨 강남',hall:'그랜드홀',location:'서울 강남구 역삼동',status:'hold',rating:3,consult:{date:'2026-11-09',time:'15:00'},
+   quotes:[{id:uid(),weddingDate:'2027-05-15',weddingTime:'12:00',rental:1000000,meal:69000,minGuests:180,promo:'',received:'2026-11-09'}],
+   common:{basis:'양가 각각',changeable:'불가',vat:'별도',cardFee:'있음'},meal:{type:'뷔페',alcohol:'포함'},hallInfo:{mood:'어두운 홀',capacity:220,lobby:'중'},parking:{spots:150,freeHours:1.5,convenience:'보통'},
+   pros:['가성비 좋음'],cons:['천장 낮음','하객 동선 아쉬움'],memos:[{id:uid(),date:'2026-11-09',text:'가격은 좋은데 천장이 낮은 편. 하객 동선이 조금 아쉬움'}]}),
+  mk({id:'v4',name:'라비두스',hall:'단독홀',location:'서울 강남구 논현동',status:'reserved',consult:{date:'2026-11-29',time:'13:00'},
+   quotes:[{id:uid(),weddingDate:'',weddingTime:'',rental:'',meal:92000,minGuests:230,promo:'',received:''}],
+   memos:[{id:uid(),date:'2026-11-17',text:'본식 스냅 제휴 업체 리스트 받기, 시식 날짜 잡기'}]})
+ ];
+}
+const KEY='wedding-note-proto-v2';
+/* 저장 방식: Claude 공유 저장소(db) 우선, 쓸 수 없으면 이 기기(localStorage) */
+let venues=[];let MODE='loading';let DB=null,ASSETS=null;let loadNote='';let readOnly=false;let pendingRender=false;
+function loadLocal(){let l;try{l=JSON.parse(localStorage.getItem(KEY))}catch(e){}venues=Array.isArray(l)&&l.length?l:seed()}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(venues))}catch(e){toast('이 기기에 다 저장하지 못했어요 (사진 용량)')}}
+function dbErr(e){const c=e&&e.code;if(c==='invalid_argument'){readOnly=true;toast('이 링크에서는 보기만 할 수 있어요')}else if(c==='quota_exceeded')toast('저장 공간이 가득 찼어요');else if(c==='revoked')toast('접근 권한이 바뀌어 저장할 수 없어요');else toast('저장하지 못했어요. 잠시 후 다시 해주세요')}
+const chains={},timers={};
+function persist(v,delay){if(!v)return;if(MODE!=='db'){saveLocal();return}
+ clearTimeout(timers[v.id]);
+ const run=()=>{const body=clone(v);delete body.id;const write=()=>DB.doc('venues/'+v.id).set(body);
+  chains[v.id]=(chains[v.id]||Promise.resolve()).then(write).catch(e=>e&&e.code==='unavailable'?new Promise(r=>setTimeout(r,600+Math.random()*600)).then(write).catch(dbErr):dbErr(e))};
+ if(delay)timers[v.id]=setTimeout(run,delay);else run()}
+function removeVenueDoc(v){if(MODE!=='db'){saveLocal();return}
+ (chains[v.id]||Promise.resolve()).then(()=>DB.doc('venues/'+v.id).delete()).catch(dbErr);
+ if(ASSETS)v.photos.forEach(p=>{if(p.assetId)ASSETS.delete(p.assetId).catch(()=>{})})}
+const photoSrc=p=>p.assetId?'/_blob/'+p.assetId:p.src;
+const byId=id=>venues.find(v=>v.id===id);
+const calcQ=(v,q)=>{const meal=num(q.meal),g=num(q.minGuests),rental=num(q.rental);const totalMeal=meal&&g?meal*g:0;const vat=(v.common&&v.common.vat==='별도')?Math.round((rental+totalMeal)*0.1):0;return{totalMeal,rental,vat,total:rental+totalMeal+vat}};
+
+/* ===================== state & nav ===================== */
+const state={screen:'home',params:{},stack:[],filter:'all',sort:'date',manage:false,search:null,open:new Set(),compareIds:['v2','v3','v1'],cal:{month:todayStr.slice(0,7),sel:null,view:'cal'},photoCat:'전체',draft:null,sheet:null,picker:null,openSecs:new Set()};
+const scrollMem={};
+const skey=()=>state.screen+':'+(state.params.id||'')+':'+(state.params.mode||'');
+function go(screen,params={}){saveScroll();state.stack.push({screen:state.screen,params:state.params});state.screen=screen;state.params=params;scrollMem[skey()]=0;render()}
+function back(){saveScroll();const p=state.stack.pop();if(!p){state.screen='home';state.params={}}else{state.screen=p.screen;state.params=p.params}state.sheet=null;render()}
+function tab(screen){state.stack=[];state.screen=screen;state.params={};state.sheet=null;render()}
+function saveScroll(){const sc=$('#app .scroll');if(sc)scrollMem[skey()]=sc.scrollTop}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
+function render(){saveScroll();const app=$('#app');app.innerHTML=(SCREENS[state.screen]||SCREENS.home)()+sheetHTML()+pickerHTML();
+ const sc=$('#app .scroll');if(sc)sc.scrollTop=scrollMem[skey()]||0;
+ $('#hind').className='hind'+(state.screen==='viewer'?' light':'');
+ afterRender()}
+function afterRender(){const car=$('[data-carousel]');if(car){car.addEventListener('scroll',()=>{const cards=[...car.children];const i=Math.round(car.scrollLeft/(cards[0].offsetWidth+10));document.querySelectorAll('.pager i').forEach((d,k)=>d.classList.toggle('on',k===i))},{passive:true})}}
+
+/* ===================== shared bits ===================== */
+const badge=s=>{const st=STATUS[s]||STATUS.reserved;return `<span class="badge" style="background:${st.bg};color:${st.fg}">${st.label}</span>`};
+const nav=cur=>`<nav class="nav">${[['home','홈',I.home],['schedule','일정',I.cal],['compare','비교',I.compare],['memo','메모',I.note]].map(([k,l,ic])=>`<button class="${cur===k?'on':''}" data-act="tab" data-to="${k}">${ic}${l}</button>`).join('')}</nav>`;
+const starsHTML=(r,size)=>`<div class="stars">${[1,2,3,4,5].map(i=>I.star(i<=r?'#D9A441':'#DDD5CF')).join('')}${r?`<b>${(+r).toFixed(1)}</b>`:''}<small>${r?'우리 점수':'아직 점수 없음'}</small></div>`;
+const photoFill=p=>p?(photoSrc(p)?`<div class="ph-fill"><img src="${esc(photoSrc(p))}" alt="" loading="lazy"></div>`:p.cat==='견적서'?`<div class="ph-fill doc">${I.doc}</div>`:`<div class="ph-fill" style="background:linear-gradient(135deg,${p.grad[0]},${p.grad[1]})">${I.image}</div>`):`<div class="ph-fill" style="background:linear-gradient(135deg,#EDE6E0,#CFC3BA)">${I.image}</div>`;
+const kv=(l,v,o={})=>`<div class="kv"><span>${l}</span><b class="${has(v)?(o.strong?'strong':''):'none'}">${has(v)?esc(v):'-'}</b></div>`;
+const para=(l,v,color)=>`<div class="para"><span>${l}</span><b style="${color&&has(v)?`color:${color}`:''}">${has(v)?esc(v):'-'}</b></div>`;
+const upcoming=()=>venues.filter(v=>v.consult.date&&ddayN(v.consult.date)>=0).sort((a,b)=>(a.consult.date+a.consult.time).localeCompare(b.consult.date+b.consult.time));
+
+/* ===================== HOME ===================== */
+const SORTS={date:'상담일순',recent:'최근 추가순',score:'점수순'};
+function filtered(){let l=venues.slice();if(state.filter!=='all')l=l.filter(v=>state.filter==='fav'?v.fav:v.status===state.filter);
+ if(state.search)l=l.filter(v=>(v.name+v.hall+v.location).includes(state.search));
+ if(state.sort==='date')l.sort((a,b)=>(b.consult.date||'').localeCompare(a.consult.date||''));
+ if(state.sort==='recent')l.reverse();if(state.sort==='score')l.sort((a,b)=>(b.rating||0)-(a.rating||0));return l}
+function vcard(v){const q=v.quotes[0]||{};const memo=v.memos.length?v.memos[v.memos.length-1].text:'';
+ return `<article class="vcard" data-act="open" data-id="${v.id}"><div class="row between">${badge(v.status)}${state.manage?`<button class="del-btn" data-act="askDelCard" data-id="${v.id}">${I.trash}삭제</button>`:`<button class="heart ${v.fav?'on':''}" data-act="fav" data-id="${v.id}" aria-label="찜">${I.heart}</button>`}</div>
+ <div><div class="vname">${esc(v.name)}</div><div class="vsub">${esc([v.hall,shortLoc(v.location)].filter(Boolean).join(' · '))}</div></div>
+ <div class="grid3"><div><span>상담일</span><b>${v.consult.date?fmtMD(v.consult.date).replace(/^(\d\d)\./,'$1.')+' '+esc(v.consult.time||''):'-'}</b></div><i></i><div><span>식대</span><b>${has(q.meal)?man(q.meal):'-'}</b></div><i></i><div><span>보증인원</span><b>${has(q.minGuests)?q.minGuests+'명':'-'}</b></div></div>
+ ${memo?`<div class="memo-prev">${I.memo}<p>${esc(memo)}</p></div>`:''}</article>`}
+function listHTML(){const l=filtered();return l.length?l.map(vcard).join(''):`<div class="empty-box">${state.search?'검색 결과가 없어요':'해당하는 업체가 없어요'}</div>`}
+const SCREENS={};
+SCREENS.home=()=>{const up=upcoming();const cnt=k=>k==='all'?venues.length:k==='fav'?venues.filter(v=>v.fav).length:venues.filter(v=>v.status===k).length;
+ return `<div class="scroll">${statusBar()}
+ <header class="hd"><div><div class="eyebrow">우리의 웨딩홀 투어</div><h1>웨딩홀 노트</h1></div><div class="row gap8"><button class="icon-btn" data-act="toggleSearch" aria-label="검색">${I.search}</button><button class="icon-btn" data-act="toast" data-msg="알림 기능은 준비 중이에요" aria-label="알림">${I.bell}</button></div></header>
+ ${state.search!=null?`<div class="px20 pb12"><input class="search" id="searchIn" data-search placeholder="업체명, 홀, 지역으로 찾기" value="${esc(state.search)}"></div>`:''}
+${MODE==='loading'?`<div class="empty-box">${loadNote||'불러오는 중이에요…'}</div>`:up.length?`<div class="carousel ${up.length===1?'single':''}" data-carousel>${up.map((v,i)=>`<div class="hero ${i%2?'alt':''}" data-act="open" data-id="${v.id}"><div class="row gap8"><span class="dday">${dday(v.consult.date)}</span><span class="hero-label">다음 상담 일정</span></div><div><div class="hero-name">${esc(v.name)}</div><div class="hero-sub">${esc(v.hall||'')}</div></div><div class="hero-info"><div>${I.cal} ${fmtKor(v.consult.date)} ${fmtTime(v.consult.time)}</div>${v.location?`<div>${I.pin} ${esc(v.location)}</div>`:''}</div></div>`).join('')}</div>${up.length>1?`<div class="pager">${up.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>`:''}`
+ :`<div class="px20"><button class="hero empty" data-act="newVenue">예정된 상담이 없어요<span class="dashed" style="width:auto;padding:8px 14px">${I.plus} 업체 추가하기</span></button></div>`}
+ <div class="sec-hd"><div class="row gap6"><h2>업체 목록</h2><h2 class="rose">${venues.length}</h2></div><div class="row gap10">${state.manage?'':`<button class="sort" data-act="cycleSort">${SORTS[state.sort]} ${I.chevD}</button>`}<button class="sort" style="color:${state.manage?'var(--rose)':'var(--gray)'};font-weight:${state.manage?700:500}" data-act="toggleManage">${state.manage?'완료':'편집'}</button></div></div>
+ <div class="chips px20">${[['all','전체'],['reserved','상담예약'],['done','상담완료'],['hold','보류'],['fav','찜']].map(([k,l])=>`<button class="chip ${state.filter===k?'on':''}" data-act="filter" data-k="${k}">${l}<small>${cnt(k)}</small></button>`).join('')}</div>
+ <div class="list px20" id="venueList">${MODE==='loading'?'':listHTML()}</div>${loadNote&&MODE!=='loading'?`<p class="note" style="text-align:center;padding-top:12px">${loadNote}</p>`:''}<div style="height:150px"></div></div>
+ ${state.manage?'':`<button class="fab" data-act="newVenue">${I.plus}업체 추가</button>`}${nav('home')}`};
+
+/* ===================== DETAIL ===================== */
+function coll(key,title,summary,body,o={}){const open=state.open.has(key);
+ return `<section class="card"><div class="card-hd" data-act="toggle" data-key="${key}"><h3>${title}</h3><div class="acts">${open&&o.edit!==false?`<span class="edit" data-act="edit">${I.edit}수정</span>`:''}<span class="toggle">${open?'접기':'더보기'}${open?I.chevU:I.chevD}</span></div></div>${open?body:summary}</section>`}
+const sumLine=arr=>{const a=arr.filter(Boolean);return a.length?`<div class="summary">${esc(a.join(' · '))}</div>`:`<div class="summary none">아직 입력 전이에요</div>`};
+SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();
+ const c=v.consult,cm=v.common,ml=v.meal,hl=v.hallInfo,pk=v.parking,pm=v.payment;const k=x=>v.id+':'+x;
+ const consultWhen=c.date?`${fmtFull(c.date)} ${fmtTime(c.time)}`:'';
+ const quotes=v.quotes.map((q,i)=>{const t=calcQ(v,q);return `<div class="quote"><div class="q-hd"><div class="row"><span class="qno">견적 ${i+1}</span><b>${q.weddingDate?fmtFull(q.weddingDate).replace(/^\d{4}\./,m=>m)+' '+esc(q.weddingTime||''):'예식일 미정'}</b></div><small>${q.received?fmtMD(q.received).slice(0,5)+' 받음':''}</small></div>
+  ${kv('대관료',has(q.rental)?(num(q.rental)===0?'0원 (식대 포함)':won(q.rental)):'')}${kv('식대 (1인)',won(q.meal))}${kv('최소 보증인원',has(q.minGuests)?q.minGuests+'명':'')}${kv('총 식대',t.totalMeal?won(t.totalMeal):'',{strong:1})}
+  <div class="divider"></div>${para('당일 혜택 & 프로모션',q.promo,'var(--rose)')}
+  <div class="total"><div class="row between"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><small>대관료 ${won(t.rental)||'0원'} + 총 식대 ${won(t.totalMeal)||'0원'}${cm.vat==='별도'?` + 부가세 ${won(t.vat)}`:cm.vat==='포함'?' · 부가세 포함':''}</small></div></div>`}).join('');
+ const memos=v.memos.slice().reverse();
+ return `<div class="scroll">${statusBar()}
+ <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="뒤로">${I.chevL}</button><b>업체 상세</b><div class="row"><button class="icon-btn plain heart ${v.fav?'on':''}" data-act="fav" data-id="${v.id}">${I.heart}</button><button class="icon-btn plain" data-act="more">${I.more}</button></div></div>
+ <div class="d-head"><div class="d-info">${badge(v.status)}<h1>${esc(v.name)}</h1><div class="vsub" style="font-size:14px">${esc([v.hall,v.location].filter(Boolean).join(' · '))}</div>${starsHTML(v.rating)}</div>
+  <button class="thumb" data-act="photos" aria-label="사진 보기">${photoFill(v.photos[0])}<span class="cnt">${v.photos.length}</span></button></div>
+ <div class="px20 pb20"><a class="btn-outline" href="https://map.kakao.com/link/search/${encodeURIComponent(v.name||v.location||'')}" target="_blank" rel="noopener">${I.pin}카카오맵 길찾기</a></div>
+ <div class="sections">
+  ${coll(k('consult'),'상담 예약 정보',kv('상담 일시',consultWhen,{strong:1}),kv('상담 일시',consultWhen,{strong:1})+kv('담당 플래너',c.planner)+kv('연락처',c.phone)+kv('방문 인원',has(c.visitors)?c.visitors+'명':''))}
+  <section class="card"><div class="card-hd"><h3>예식일별 견적</h3><span class="edit" data-act="edit">${I.edit}수정</span></div>${quotes||'<div class="summary none">아직 받은 견적이 없어요</div>'}<button class="dashed" data-act="addQuote">${I.plus}다른 예식일 견적 추가</button></section>
+  ${coll(k('common'),'업체 공통 조건',sumLine([cm.basis,cm.changeable&&'인원 변경 '+cm.changeable,cm.vat&&'부가세 '+cm.vat]),`<div class="note">모든 예식일 견적에 똑같이 적용돼요</div>`+kv('보증인원 기준',cm.basis)+kv('인원 변경',cm.changeable)+kv('부가세',cm.vat)+kv('카드 결제 수수료',cm.cardFee)+para('패키지 구성',cm.pkg)+para('추가 비용 발생 항목',cm.extra))}
+  ${coll(k('meal'),'식사',sumLine([ml.type,ml.alcohol&&'주류 '+ml.alcohol,ml.tasting==='가능'?`시식 ${has(ml.tastingCount)?ml.tastingCount+'인 ':''}가능`:ml.tasting==='불가'?'시식 불가':'']),kv('식사 형태',ml.type)+kv('주류 포함 여부',ml.alcohol)+kv('혼주 식사 공간',ml.parentsRoom)+kv('시식 가능 여부',ml.tasting?ml.tasting+(ml.tasting==='가능'&&has(ml.tastingCount)?` (${ml.tastingCount}인)`:''):''))}
+  ${coll(k('hall'),'홀 정보',sumLine([hl.mood,has(hl.capacity)&&'착석 '+hl.capacity+'명',hl.lobby&&'로비 '+hl.lobby]),kv('전체적인 분위기',hl.mood)+kv('웨딩홀 수용인원',has(hl.capacity)?hl.capacity+'명 (착석)':'')+kv('로비 크기',hl.lobby)+kv('화환 반입',hl.wreath)+para('기본 꽃장식 구성',hl.flowers))}
+  ${coll(k('parking'),'주차 · 교통',sumLine([has(pk.spots)&&pk.spots+'대',has(pk.freeHours)&&pk.freeHours+'시간 무료',pk.parentsParking&&'혼주 전용 '+pk.parentsParking]),kv('주차 가능 대수',has(pk.spots)?pk.spots+'대':'')+kv('주차 무료 시간',has(pk.freeHours)?pk.freeHours+'시간':'')+kv('혼주 전용 주차',pk.parentsParking)+kv('주차 편의성',pk.convenience)+para('대중교통 접근성',pk.transit))}
+  ${coll(k('payment'),'계약 · 결제 조건',sumLine([has(pm.deposit)&&'계약금 '+man(pm.deposit),has(pm.balance)&&'잔금 '+man(pm.balance)]),kv('계약금',won(pm.deposit))+kv('중도금',won(pm.middle))+kv('잔금',won(pm.balance))+para('환불 조건',pm.refund))}
+  <section class="card"><div class="card-hd"><h3>좋았던 점 · 아쉬운 점</h3><span class="edit" data-act="edit">${I.edit}수정</span></div>
+   <div class="lbl">좋았던 점</div><div class="tags">${v.pros.map(t=>`<span class="tag pro">${esc(t)}</span>`).join('')||'<span class="summary none">-</span>'}</div>
+   <div class="lbl">아쉬운 점</div><div class="tags">${v.cons.map(t=>`<span class="tag con">${esc(t)}</span>`).join('')||'<span class="summary none">-</span>'}</div></section>
+  <section class="card"><div class="card-hd"><div class="row gap6"><h3>메모</h3><h3 class="rose">${v.memos.length}</h3></div></div>
+   ${memos.map(m=>`<div class="memo-item"><small><span>${fmtMD(m.date)}${m.date===c.date?' · 상담 당일':''}</span><button data-act="delMemo" data-mid="${m.id}" aria-label="메모 삭제">${I.x.replace('<svg','<svg width="14" height="14"')}</button></small><p>${esc(m.text)}</p></div>`).join('')||'<div class="summary none">아래 입력창에서 바로 메모를 남겨보세요</div>'}</section>
+  <button class="del-link" data-act="askDelVenue">${I.trash}이 업체 삭제</button><div style="height:12px"></div></div></div>
+ <div class="memo-bar"><input id="quickMemo" placeholder="투어하면서 바로 메모 남기기" enterkeyhint="send"><button class="send" data-act="addMemo" aria-label="메모 저장">${I.arrowUp}</button></div>`};
+
+/* ===================== FORM ===================== */
+const OPT_SECS={meal:['식사','시식이 가능하면 인원도 함께 적어두세요',['meal.type','meal.alcohol','meal.parentsRoom','meal.tasting','meal.tastingCount']],
+ hall:['홀 정보','직접 둘러보고 느낀 홀 정보를 남겨요',['hallInfo.mood','hallInfo.capacity','hallInfo.lobby','hallInfo.flowers','hallInfo.wreath']],
+ parking:['주차 · 교통','하객이 오가기 편한지 확인해요',['parking.spots','parking.freeHours','parking.parentsParking','parking.convenience','parking.transit']],
+ payment:['계약 · 결제 조건','계약 전에 꼭 확인해야 할 조건이에요',['payment.deposit','payment.middle','payment.balance','payment.refund']]};
+const D=p=>getP(state.draft,p);
+function fld(label,path,o={}){const val=D(path);const P='draft.'+path;let input;
+ if(o.type==='date')input=`<button type="button" class="inp" data-act="pickDate" data-path="${P}" data-label="${label}">${val?fmtFull(val):`<span class="ph">YYYY.MM.DD</span>`}</button>${I.cal}`;
+ else if(o.type==='time')input=`<input class="inp" data-path="${P}" data-time inputmode="numeric" maxlength="5" placeholder="HH:MM" value="${esc(val)}">${I.clock}`;
+ else if(o.type==='num')input=`<input class="inp" data-path="${P}" data-num inputmode="numeric" placeholder="${o.ph||'0'}" value="${fmtNum(val)}">${o.suf?`<span class="suf">${o.suf}</span>`:''}`;
+ else input=`<input class="inp" data-path="${P}" placeholder="${esc(o.ph||'')}" value="${esc(val)}" ${o.id?`id="${o.id}"`:''}>${o.icon||''}`;
+ return `<div class="fld"><span class="lbl">${label}${o.req?'<i>*</i>':''}</span><div class="box">${input}</div></div>`}
+function choice(label,path,opts){const val=D(path);return `<div class="fld"><span class="lbl">${label}</span><div class="opts">${opts.map(x=>`<button type="button" class="opt ${val===x?'on':''}" data-act="choose" data-path="draft.${path}" data-val="${x}">${x}</button>`).join('')}</div></div>`}
+function area(label,path,ph){return `<div class="fld"><span class="lbl">${label}</span><textarea class="ta" data-path="draft.${path}" placeholder="${esc(ph)}">${esc(D(path))}</textarea></div>`}
+const frow=(...a)=>`<div class="frow">${a.join('')}</div>`;
+const help=t=>`<div class="helper">${t}</div>`;
+function progOf(key){const f=OPT_SECS[key][2];return [f.filter(p=>has(D(p))).length,f.length]}
+function estHTML(i){const q=state.draft.quotes[i];const t=calcQ(state.draft,q);return `<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>대관료</span><span>${won(t.rental)||'0원'}</span></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div><div class="r"><span>부가세 (공통 조건 '별도' 시 10%)</span><span>${won(t.vat)||'0원'}</span></div>`}
+function tagEditor(k,sugg){const cls=k==='pros'?'pro':'con';const list=state.draft[k];
+ return `<div class="fld"><span class="lbl">${k==='pros'?'좋았던 점':'아쉬운 점'}</span><div class="tagbox">${list.map((t,i)=>`<span class="tag ${cls}">${esc(t)}<button type="button" data-act="rmTag" data-k="${k}" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-taginput="${k}" placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
+ <div class="sugg">${sugg.filter(s=>!list.includes(s)).map(s=>`<button type="button" data-act="addTag" data-k="${k}" data-val="${s}">+ ${s}</button>`).join('')}</div></div>`}
+SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';
+ const quotes=d.quotes.map((q,i)=>`<div class="qbox"><div class="qbox-hd"><div class="row"><span class="qno">견적 ${i+1}</span><b>${i===0?'첫 번째 예식일':'다른 예식일'}</b></div>${d.quotes.length>1?`<button type="button" class="rm" data-act="rmQuote" data-i="${i}">삭제</button>`:''}</div>
+  ${frow(fld('희망 예식일',`quotes.${i}.weddingDate`,{type:'date'}),fld('예식 시간',`quotes.${i}.weddingTime`,{type:'time'}))}
+  ${fld('대관료',`quotes.${i}.rental`,{type:'num',suf:'원'})}${help('식대에 포함된 경우 0원으로 입력해요')}
+  ${frow(fld('식대 (1인)',`quotes.${i}.meal`,{type:'num',suf:'원'}),fld('최소 보증인원',`quotes.${i}.minGuests`,{type:'num',suf:'명'}))}
+  <div class="fld"><span class="lbl">총 식대 (자동 계산)</span><div class="box ro"><span class="inp" style="color:var(--gray)" data-calc="meal" data-i="${i}">${fmtNum(calcQ(d,q).totalMeal)||'0'}</span><span class="suf" style="color:var(--light)">원</span></div></div>${help('식대(1인) × 최소 보증인원으로 자동 입력돼요')}
+  ${area('당일 혜택 & 프로모션',`quotes.${i}.promo`,'예) 당일 계약 시 식대 3% 할인, 본식 스냅 제공')}
+  <div class="est" data-calc="est" data-i="${i}">${estHTML(i)}</div></div>`).join('');
+ const opt=(key,body)=>{const [t,desc]=OPT_SECS[key];const [a,b]=progOf(key);const open=state.openSecs.has(key);
+  return `<section class="osec ${open?'open':''}" data-osec="${key}"><button type="button" class="osec-hd" data-act="toggleSec" data-k="${key}"><div><b>${t}</b><small>${desc}</small></div><span class="prog ${a===b?'full':''}" data-prog="${key}">${a}/${b} 입력</span>${I.chevD}</button><div class="osec-body">${body}</div></section>`};
+ return `<div class="scroll">${statusBar()}
+ <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="닫기">${I.x}</button><b>${isNew?'업체 추가':'업체 정보 수정'}</b><button style="font-size:13px;color:var(--gray);font-weight:500;width:56px" data-act="tempSave">${isNew?'임시저장':''}</button></div>
+ <div class="form">
+  <div class="fsec"><header><h2>기본 정보</h2></header>${fld('업체명','name',{req:1,ph:'예) 더채플앳청담',id:'nameIn'})}${fld('홀 이름','hall',{ph:'예) 커티지홀'})}${fld('위치','location',{ph:'예) 서울 강남구 청담동',icon:I.search})}</div>
+  <div class="fsec"><header><h2>상담 예약</h2><p>상담 날짜를 넣으면 메인에서 D-day로 알려드려요</p></header>
+   <div class="fld"><span class="lbl">진행 상태</span><div class="seg">${Object.entries(STATUS).map(([k,s])=>`<button type="button" class="${d.status===k?'on':''}" data-act="setStatus" data-k="${k}">${s.label}</button>`).join('')}</div></div>
+   ${frow(fld('상담 날짜','consult.date',{type:'date'}),fld('시간','consult.time',{type:'time'}))}
+   ${frow(fld('담당자','consult.planner',{ph:'이름'}),fld('연락처','consult.phone',{ph:'010-0000-0000'}))}${fld('방문 인원','consult.visitors',{type:'num',suf:'명'})}</div>
+  <div class="fsec"><header><h2>예식일별 견적</h2><p>예식일마다 달라지는 금액만 입력해요</p></header>${quotes}<button type="button" class="dashed" data-act="formAddQuote">${I.plus}다른 예식일 견적 추가</button></div>
+  <div class="fsec"><header><h2>업체 공통 조건</h2><p>예식일과 상관없이 같은 조건이에요. 한 번만 입력하면 모든 견적에 적용돼요</p></header>
+   ${choice('보증인원 기준','common.basis',['양가 합산','양가 각각'])}${help('양가 합산: 양가 하객을 합쳐 보증 / 양가 각각: 신랑·신부 측 각각 보증')}
+   ${choice('인원 변경 가능 여부','common.changeable',['가능','불가'])}${area('패키지 구성','common.pkg','예) 대관료, 기본 연출, 원판 촬영, 폐백 포함')}${area('추가 비용 발생 항목','common.extra','예) 생화 업그레이드, 영상 촬영, 주차 시간 연장')}
+   ${frow(choice('부가세','common.vat',['포함','별도']),choice('카드 결제 수수료','common.cardFee',['있음','없음']))}</div>
+  <div class="fsec"><header><h2>상세 정보</h2><p>필요한 항목만 펼쳐서 입력하세요. 나중에 채워도 돼요</p></header>
+   ${opt('meal',choice('식사 형태','meal.type',['뷔페','코스','한상'])+frow(choice('주류 포함 여부','meal.alcohol',['포함','별도']),choice('혼주 식사 공간','meal.parentsRoom',['별도 제공','없음']))+frow(choice('시식 가능 여부','meal.tasting',['가능','불가']),fld('시식 인원','meal.tastingCount',{type:'num',suf:'명'})))}
+   ${opt('hall',choice('전체적인 분위기','hallInfo.mood',['밝은 홀','어두운 홀'])+frow(fld('웨딩홀 수용인원','hallInfo.capacity',{type:'num',suf:'명',ph:'착석 기준'}),choice('로비 크기','hallInfo.lobby',['소','중','대']))+fld('기본 꽃장식 구성','hallInfo.flowers',{ph:'예) 생화, 버진로드 + 단상 장식'})+choice('화환 반입 가능 여부','hallInfo.wreath',['가능','불가']))}
+   ${opt('parking',frow(fld('주차 가능 대수','parking.spots',{type:'num',suf:'대'}),fld('주차 무료 시간','parking.freeHours',{type:'num',suf:'시간'}))+choice('혼주 전용 주차','parking.parentsParking',['있음','없음'])+choice('주차 편의성','parking.convenience',['좋음','보통','나쁨','모름'])+fld('대중교통 접근성','parking.transit',{ph:'예) 2호선 강남역 도보 5분, 셔틀 운행'}))}
+   ${opt('payment',fld('계약금','payment.deposit',{type:'num',suf:'원'})+fld('중도금','payment.middle',{type:'num',suf:'원'})+fld('잔금','payment.balance',{type:'num',suf:'원'})+area('환불 조건','payment.refund','예) 예식 90일 전 취소 시 계약금 전액 환불'))}</div>
+  <div class="fsec"><header><h2>우리 점수</h2><p>둘러본 느낌을 별점으로 남기면 비교 화면에 반영돼요</p></header>
+   <div class="rating"><div class="st">${[1,2,3,4,5].map(i=>`<button type="button" data-act="rate" data-val="${i}" aria-label="${i}점">${I.star(i<=d.rating?'#D9A441':'#E6DED8')}</button>`).join('')}</div><p>${d.rating?`${d.rating}.0점 · 다시 누르면 바꿀 수 있어요`:'별을 눌러 점수를 매겨주세요'}</p></div></div>
+  <div class="fsec"><header><h2>좋았던 점 · 아쉬운 점</h2><p>태그로 남겨두면 업체끼리 비교하기 쉬워요</p></header>${tagEditor('pros',SUG_PROS)}${tagEditor('cons',SUG_CONS)}</div>
+  ${!isNew?`<button type="button" class="del-link" style="margin-top:-8px" data-act="askDelVenue">${I.trash}이 업체 삭제</button>`:''}${isNew?`<div class="fsec"><header><h2>메모</h2></header><textarea class="ta" style="min-height:128px" data-path="draft._memo" placeholder="상담 때 물어볼 것, 둘러보며 느낀 점을 자유롭게 적어두세요" maxlength="500">${esc(d._memo||'')}</textarea></div>`:''}
+ </div></div>
+ <div class="cta"><button class="btn-primary" data-act="saveVenue">저장하기</button></div>`};
+
+/* ===================== COMPARE ===================== */
+SCREENS.compare=()=>{const sel=state.compareIds.map(byId).filter(Boolean);
+ const q=v=>v.quotes[0]||{};const tot=v=>calcQ(v,q(v)).total;
+ const pick=(fn,mode)=>{const xs=sel.map(v=>({v,n:fn(v)})).filter(x=>x.n);if(!xs.length)return null;return xs.sort((a,b)=>mode==='max'?b.n-a.n:a.n-b.n)[0].v};
+ const best1=pick(v=>v.rating,'max'),best2=pick(v=>num(q(v).meal),'min'),best3=pick(tot,'min');
+ const rows=[['우리 점수',v=>v.rating?'★ '+v.rating.toFixed(1):'',v=>v.rating,'max'],['식대 (1인)',v=>man(q(v).meal),v=>num(q(v).meal),'min'],['보증인원',v=>has(q(v).minGuests)?q(v).minGuests+'명':''],
+  ['예상 총액',v=>tot(v)?man(tot(v)):'',tot,'min'],['대관료',v=>has(q(v).rental)?(num(q(v).rental)===0?'식대 포함':man(q(v).rental)):''],['부가세',v=>v.common.vat],['식사',v=>v.meal.type],
+  ['주차',v=>has(v.parking.spots)?v.parking.spots+'대':'',v=>num(v.parking.spots),'max'],['홀 분위기',v=>v.hallInfo.mood],['상담일',v=>fmtMD(v.consult.date)],['한 줄 평',v=>v.pros[0]||v.cons[0]||'',null,null,'small']];
+ const cell=(r,v)=>{const val=r[1](v);let cls='';if(!has(val))cls='dim';else if(r[3]&&sel.length>1){const b=pick(r[2],r[3]);if(b&&b.id===v.id)cls='best'}if(r[4]&&has(val))cls+=' small';return `<td class="${cls}">${has(val)?esc(val):(v.status==='reserved'&&r[0]==='우리 점수'?'상담 전':'-')}</td>`};
+ return `<div class="scroll">${statusBar()}
+ <header class="hd" style="align-items:flex-end;padding-bottom:16px"><div><div class="eyebrow">최대 3곳까지 나란히 비교해요</div><h1>업체 비교</h1></div></header>
+ <div class="sel-chips">${sel.map(v=>`<button class="sel-chip" data-act="cmpRemove" data-id="${v.id}">${esc(v.name)}${I.x}</button>`).join('')}${sel.length<3?`<button class="sel-add" data-act="cmpAdd" aria-label="업체 추가">${I.plus}</button>`:''}</div>
+ ${sel.length<2?`<div class="empty-box">2곳 이상 고르면 비교표가 나와요</div>`:`
+ <div class="insights">${[['우리 점수 1위',best1,best1&&'★ '+best1.rating.toFixed(1)],['식대 최저',best2,best2&&man(q(best2).meal)],['예상 총액 최저',best3,best3&&man(tot(best3))]].map(([l,v,s])=>`<div class="ins"><small>${l}</small><b>${v?esc(v.name):'-'}</b><b class="rose">${s||'-'}</b></div>`).join('')}</div>
+ <div class="ctable"><table><thead><tr><th></th>${sel.map(v=>`<th data-act="open" data-id="${v.id}">${esc(v.name)}<br>${badge(v.status)}</th>`).join('')}</tr></thead>
+ <tbody>${rows.map(r=>`<tr><td>${r[0]}</td>${sel.map(v=>cell(r,v)).join('')}</tr>`).join('')}</tbody></table></div>
+ <div class="legend"><i></i>항목별로 가장 유리한 업체를 표시했어요 · 금액은 견적 1 기준</div>`}
+ <div style="height:40px"></div></div>${nav('compare')}`};
+
+/* ===================== SCHEDULE ===================== */
+function sitem(v,o={}){const st=STATUS[v.status];const d=parseD(v.consult.date);const n=ddayN(v.consult.date);
+ return `<div class="sitem ${o.sel?'sel':''} ${n<0?'past':''}" data-act="open" data-id="${v.id}"><div class="dc"><b>${pad2(d.getDate())}</b><small style="color:${d.getDay()===0?'var(--rose)':d.getDay()===6?'var(--sat)':'var(--light)'}">${WD[d.getDay()]}</small></div><i class="bar" style="background:${st.fg}"></i>
+ <div class="bd"><div class="tr"><span style="color:${n<0?'var(--gray)':'var(--rose)'}">${esc(v.consult.time||'')}</span>${badge(v.status)}${n>=0?`<em>${dday(v.consult.date)}</em>`:''}</div><div class="nm">${esc(v.name)}</div><div class="sb">${esc([v.hall,shortLoc(v.location)].filter(Boolean).join(' · '))}</div></div>${I.chevR}</div>`}
+SCREENS.schedule=()=>{const cs=state.cal;const [Y,M]=cs.month.split('-').map(Number);const first=new Date(Y,M-1,1);const days=new Date(Y,M,0).getDate();
+ const ev={};venues.forEach(v=>{if(v.consult.date)(ev[v.consult.date]=ev[v.consult.date]||[]).push(v)});
+ const withDate=venues.filter(v=>v.consult.date);const up=withDate.filter(v=>ddayN(v.consult.date)>=0).sort((a,b)=>a.consult.date.localeCompare(b.consult.date));const past=withDate.filter(v=>ddayN(v.consult.date)<0).sort((a,b)=>b.consult.date.localeCompare(a.consult.date));
+ let cells=WD.map((w,i)=>`<div class="wd ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('')+'<div></div>'.repeat(first.getDay());
+ for(let d=1;d<=days;d++){const s=`${Y}-${pad2(M)}-${pad2(d)}`;const dow=(first.getDay()+d-1)%7;const e=ev[s];
+  cells+=`<button class="d ${dow===0?'sun':dow===6?'sat':''} ${s<todayStr?'past':''} ${s===todayStr?'today':''} ${s===cs.sel?'sel':''}" data-act="calSel" data-date="${s}"><span>${d}</span><i class="dot" style="background:${e?STATUS[e[0].status].fg:'transparent'}"></i></button>`}
+ const selList=cs.sel?(ev[cs.sel]||[]):[];
+ return `<div class="scroll">${statusBar()}
+ <header class="hd"><div><div class="eyebrow">다가오는 상담 ${up.length}건</div><h1>일정</h1></div><div class="vtoggle"><button class="${cs.view==='cal'?'on':''}" data-act="calView" data-k="cal" aria-label="달력">${I.cal}</button><button class="${cs.view==='list'?'on':''}" data-act="calView" data-k="list" aria-label="목록">${I.list}</button></div></header>
+ ${cs.view==='cal'?`<div class="calcard"><div class="cal-nav"><button data-act="calMonth" data-d="-1">${I.chevL}</button><b>${Y}년 ${M}월</b><button data-act="calMonth" data-d="1">${I.chevR}</button></div><div class="cal">${cells}</div>
+  <div class="lg">${Object.values(STATUS).map(s=>`<span><i style="background:${s.fg}"></i>${s.label}</span>`).join('')}</div></div>`:''}
+ ${cs.sel&&cs.view==='cal'?`<div class="stitle">${fmtKor(cs.sel)}</div><div class="list px20">${selList.length?selList.map(v=>sitem(v,{sel:1})).join(''):'<div class="summary none" style="padding:4px 0">이 날은 일정이 없어요</div>'}</div>`:''}
+ <div class="stitle">다가오는 일정 <span class="rose">${up.length}</span></div><div class="list px20">${up.map(v=>sitem(v,{sel:v.consult.date===cs.sel})).join('')||'<div class="summary none">예정된 상담이 없어요</div>'}</div>
+ <div class="stitle">지난 일정</div><div class="list px20">${past.map(v=>sitem(v)).join('')||'<div class="summary none">아직 없어요</div>'}</div>
+ <div style="height:150px"></div></div><button class="fab" data-act="newVenue">${I.plus}상담 일정 추가</button>${nav('schedule')}`};
+
+/* ===================== MEMO TAB ===================== */
+SCREENS.memo=()=>{const all=[];venues.forEach(v=>v.memos.forEach(m=>all.push({v,m})));all.sort((a,b)=>b.m.date.localeCompare(a.m.date));
+ return `<div class="scroll">${statusBar()}<header class="hd"><div><div class="eyebrow">모든 업체 메모 ${all.length}개</div><h1>메모</h1></div></header>
+ <div class="list px20">${all.map(({v,m})=>`<div class="mcard" data-act="open" data-id="${v.id}"><div class="row between"><span class="vn">${esc(v.name)}</span><small>${fmtMD(m.date)}</small></div><p>${esc(m.text)}</p></div>`).join('')||'<div class="empty-box">아직 메모가 없어요</div>'}</div>
+ ${MODE==='db'?`<p class="note" style="text-align:center;padding:24px 20px">입력한 내용은 이 링크를 여는 모든 기기에서 똑같이 보여요</p>`:`<p class="note" style="text-align:center;padding:24px 20px 0">지금은 이 기기에만 저장돼요</p><button class="linkbtn" data-act="askReset">샘플 데이터로 되돌리기</button>`}<div style="height:20px"></div></div>${nav('memo')}`};
+
+/* ===================== PHOTOS ===================== */
+SCREENS.photos=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();const cat=state.photoCat;
+ const list=v.photos.map((p,i)=>({p,i})).filter(x=>cat==='전체'||x.p.cat===cat);const groups={};list.forEach(x=>(groups[x.p.date]=groups[x.p.date]||[]).push(x));
+ const cnt=c=>c==='전체'?v.photos.length:v.photos.filter(p=>p.cat===c).length;
+ return `<div class="scroll">${statusBar()}
+ <div class="topnav"><button class="icon-btn plain" data-act="back">${I.chevL}</button><div style="text-align:center"><b>사진 ${v.photos.length}</b><div style="font-size:11px;color:var(--light)">${esc(v.name)}</div></div><span style="width:36px"></span></div>
+ <div class="pchips">${['전체',...PHOTO_CATS].filter(c=>c==='전체'||cnt(c)).map(c=>`<button class="chip ${cat===c?'on':''}" data-act="pcat" data-k="${c}">${c}<small>${cnt(c)}</small></button>`).join('')}</div>
+ ${Object.keys(groups).sort().map(dt=>`<div class="pgroup"><span>${fmtMD(dt)}${dt===v.consult.date?' · 상담 당일':''}</span><small>${groups[dt].length}장</small></div><div class="pgrid">${groups[dt].map(({p,i})=>`<div class="tile" data-act="view" data-i="${i}">${photoFill(p)}<span class="cat">${p.cat}</span>${p.memo?`<span class="mb">${I.memo}</span>`:''}</div>`).join('')}</div>`).join('')||'<div class="empty-box">아직 사진이 없어요<br>투어하면서 찍은 사진을 올려보세요</div>'}
+ <div style="height:120px"></div></div>${MODE==='db'&&!ASSETS?'':`<button class="fab" style="right:50%;transform:translateX(50%);bottom:34px" data-act="addPhoto">${I.plus}사진 추가</button>`}`};
+SCREENS.viewer=()=>{const v=byId(state.params.id);const i=state.params.i;const p=v&&v.photos[i];if(!p){return SCREENS.photos()}
+ const n=v.photos.length;
+ return `<div class="app viewer" style="position:absolute"><div class="sbar" style="color:#fff"><span>9:41</span></div>
+ <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="닫기">${I.x}</button><b style="font-weight:500">${i+1} / ${n}</b><button class="icon-btn plain" data-act="askDelPhoto" aria-label="삭제">${I.trash}</button></div>
+ <div class="v-stage"><div class="v-photo">${photoFill(p)}${i>0?`<button class="v-arrow l" data-act="vnav" data-d="-1">${I.chevL}</button>`:''}${i<n-1?`<button class="v-arrow r" data-act="vnav" data-d="1">${I.chevR}</button>`:''}</div>
+ <div class="v-dots">${v.photos.slice(Math.max(0,i-2),Math.max(0,i-2)+5).map((_,k)=>`<i class="${Math.max(0,i-2)+k===i?'on':''}"></i>`).join('')}</div></div>
+ <div class="v-panel"><div class="v-cats">${PHOTO_CATS.map(c=>`<button class="${p.cat===c?'on':''}" data-act="setPcat" data-k="${c}">${c}</button>`).join('')}</div><small>${fmtMD(p.date)}${v.hall?' · '+esc(v.hall):''}</small>
+ <textarea data-photomemo placeholder="이 사진에 대한 메모를 남겨보세요">${esc(p.memo)}</textarea></div></div>`};
+
+/* ===================== SHEETS ===================== */
+function sheetHTML(){const s=state.sheet;if(!s)return '';let body='';
+ if(s.type==='more')body=`<button class="menu-item" data-act="edit">${I.edit}업체 정보 수정</button><button class="menu-item" data-act="photos">${I.image}사진 보기</button><button class="menu-item danger" data-act="askDelVenue">${I.trash}업체 삭제</button>`;
+ if(s.type==='confirm')body=`<div class="sheet-hd"><h3>${s.title}</h3></div><p style="font-size:14px;color:var(--gray);line-height:1.5">${s.desc}</p><div class="frow"><button class="btn-sub" data-act="closeSheet">취소</button><button class="btn-primary" style="background:#C2554A" data-act="${s.ok}">${s.okLabel}</button></div>`;
+ if(s.type==='cmpAdd'){const opts=venues.filter(v=>!state.compareIds.includes(v.id));body=`<div class="sheet-hd"><h3>비교할 업체 추가</h3><button data-act="closeSheet">${I.x}</button></div>${opts.map(v=>`<button class="menu-item" data-act="cmpPick" data-id="${v.id}">${badge(v.status)}<span>${esc(v.name)}</span></button>`).join('')||'<p class="summary none">추가할 업체가 없어요</p>'}`}
+ if(s.type==='quote'){const v=byId(s.vid);const q=s.q;const t=calcQ(v,q);const prev=v.quotes.at(-1);const pt=prev?calcQ(v,prev).total:0;const diff=t.total&&pt?t.total-pt:0;
+  const box=(label,path,o={})=>{const val=getP(state,path);let input;
+   if(o.type==='date')input=`<button type="button" class="inp" data-act="pickDate" data-path="${path}" data-label="${label}">${val?fmtFull(val):'<span class="ph">YYYY.MM.DD</span>'}</button>${I.cal}`;
+   else if(o.type==='time')input=`<input class="inp" data-path="${path}" data-time inputmode="numeric" maxlength="5" placeholder="HH:MM" value="${esc(val)}">${I.clock}`;
+   else if(o.type==='num')input=`<input class="inp" data-path="${path}" data-num inputmode="numeric" placeholder="0" value="${fmtNum(val)}"><span class="suf">${o.suf}</span>`;
+   else input=`<input class="inp" data-path="${path}" placeholder="${o.ph||''}" value="${esc(val)}">`;
+   return `<div class="fld"><span class="lbl">${label}</span><div class="box">${input}</div></div>`};
+  body=`<div class="sheet-hd"><h3>견적 ${v.quotes.length+1} 추가</h3><button data-act="closeSheet">${I.x}</button></div>
+  <p class="note" style="margin-top:-8px">견적 ${v.quotes.length}의 금액을 미리 채워뒀어요. 달라진 칸만 고쳐주세요</p>
+  ${frow(box('희망 예식일','sheet.q.weddingDate',{type:'date'}),box('예식 시간','sheet.q.weddingTime',{type:'time'}))}
+  ${box('대관료','sheet.q.rental',{type:'num',suf:'원'})}${frow(box('식대 (1인)','sheet.q.meal',{type:'num',suf:'원'}),box('최소 보증인원','sheet.q.minGuests',{type:'num',suf:'명'}))}
+  ${box('당일 혜택 & 프로모션','sheet.q.promo',{ph:'예) 당일 계약 시 식대 3% 할인'})}
+  <div class="est" data-calc="sheetEst"><div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${v.quotes.length}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}</div>
+  <button class="btn-primary" data-act="saveQuote">견적 추가하기</button>`}
+ return `<div class="overlay" data-act="closeSheet"><div class="sheet"><div class="grab"></div>${body}</div></div>`}
+function pickerHTML(){const p=state.picker;if(!p)return '';const [Y,M]=p.month.split('-').map(Number);const first=new Date(Y,M-1,1);const days=new Date(Y,M,0).getDate();
+ let cells=WD.map((w,i)=>`<div class="wd ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('')+'<div></div>'.repeat(first.getDay());
+ for(let d=1;d<=days;d++){const s=`${Y}-${pad2(M)}-${pad2(d)}`;const dow=(first.getDay()+d-1)%7;cells+=`<button class="d ${dow===0?'sun':dow===6?'sat':''} ${s===p.sel?'sel':''}" data-act="pkSel" data-date="${s}"><span>${d}</span></button>`}
+ return `<div class="overlay" style="z-index:70" data-act="pkClose"><div class="sheet"><div class="grab"></div><div class="sheet-hd"><h3>${esc(p.label)} 선택</h3><button data-act="pkClose" data-force="1">${I.x}</button></div>
+ <div class="cal-nav"><button class="circle" data-act="pkMonth" data-d="-12" aria-label="이전 해" style="font-size:11px;font-weight:700">-1년</button><button class="circle" data-act="pkMonth" data-d="-1">${I.chevL}</button><b>${Y}년 ${M}월</b><button class="circle" data-act="pkMonth" data-d="1">${I.chevR}</button><button class="circle" data-act="pkMonth" data-d="12" style="font-size:11px;font-weight:700">+1년</button></div>
+ <div class="cal">${cells}</div><div class="picked"><span>선택한 날짜</span><b>${p.sel?fmtFull(p.sel):'-'}</b></div><button class="btn-primary" data-act="pkOk">선택 완료</button></div></div>`}
+
+/* ===================== live calc updates ===================== */
+function updateCalcs(){document.querySelectorAll('[data-calc]').forEach(el=>{const k=el.dataset.calc,i=+el.dataset.i;
+ if(k==='meal'){el.textContent=fmtNum(calcQ(state.draft,state.draft.quotes[i]).totalMeal)||'0'}
+ if(k==='est'){el.innerHTML=estHTML(i)}
+ if(k==='sheetEst'){const v=byId(state.sheet.vid);const t=calcQ(v,state.sheet.q);const prev=v.quotes.at(-1);const pt=prev?calcQ(v,prev).total:0;const diff=t.total&&pt?t.total-pt:0;
+  el.innerHTML=`<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${v.quotes.length}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}`}});
+ if(state.screen==='form')Object.keys(OPT_SECS).forEach(k=>{const el=$(`[data-prog="${k}"]`);if(el){const [a,b]=progOf(k);el.textContent=`${a}/${b} 입력`;el.classList.toggle('full',a===b)}})}
+
+/* ===================== actions ===================== */
+const openForm=(mode,v)=>{state.draft=mode==='new'?emptyVenue():clone(v);state.openSecs=new Set();
+ if(mode==='new'){try{const t=JSON.parse(localStorage.getItem(KEY+'-draft'));if(t&&t.name!==undefined){state.draft=t;setTimeout(()=>toast('임시저장한 내용을 불러왔어요'),50)}}catch(e){}}
+ state.sheet=null;go('form',{mode,id:v&&v.id})};
+const A={
+ tab:el=>tab(el.dataset.to),back:()=>back(),toast:el=>toast(el.dataset.msg),
+ open:el=>{state.sheet=null;go('detail',{id:el.dataset.id})},
+ fav:el=>{const v=byId(el.dataset.id);v.fav=!v.fav;persist(v);render()},
+ filter:el=>{state.filter=el.dataset.k;render()},
+ cycleSort:()=>{const k=Object.keys(SORTS);state.sort=k[(k.indexOf(state.sort)+1)%k.length];render()},
+ toggleSearch:()=>{state.search=state.search==null?'':null;render();const s=$('#searchIn');if(s)s.focus()},
+ newVenue:()=>openForm('new'),
+ edit:()=>openForm('edit',byId(state.params.id)),
+ toggle:(el,e)=>{if(e.target.closest('[data-act="edit"]'))return A.edit();const k=el.dataset.key;state.open.has(k)?state.open.delete(k):state.open.add(k);render()},
+ more:()=>{state.sheet={type:'more'};render()},
+ closeSheet:(el,e)=>{if(el.classList.contains('overlay')&&e.target!==el)return;state.sheet=null;render()},
+ photos:()=>{state.sheet=null;state.photoCat='전체';go('photos',{id:state.params.id})},
+ askDelVenue:()=>A.askDelCard({dataset:{id:state.params.id}}),
+ askDelCard:el=>{const v=byId(el.dataset.id);if(!v)return;state.sheet={type:'confirm',vid:v.id,title:`'${esc(v.name)}'을(를) 삭제할까요?`,desc:'견적, 메모, 사진까지 모두 지워지고 되돌릴 수 없어요.',ok:'delVenue',okLabel:'삭제'};render()},
+ toggleManage:()=>{state.manage=!state.manage;render()},
+ delVenue:()=>{const id=state.sheet&&state.sheet.vid;const dv=byId(id);if(!dv)return;removeVenueDoc(dv);venues=venues.filter(v=>v.id!==id);state.compareIds=state.compareIds.filter(i=>i!==id);if(MODE!=='db')saveLocal();state.sheet=null;
+  if(state.screen==='home'){if(!venues.length)state.manage=false;render()}else{state.manage=false;tab('home')}toast('업체를 삭제했어요')},
+ addMemo:()=>{const inp=$('#quickMemo');const t=inp.value.trim();if(!t)return inp.focus();const v=byId(state.params.id);v.memos.push({id:uid(),date:todayStr,text:t});persist(v);render();toast('메모를 남겼어요')},
+ delMemo:el=>{const v=byId(state.params.id);v.memos=v.memos.filter(m=>m.id!==el.dataset.mid);persist(v);render()},
+ addQuote:()=>{const v=byId(state.params.id);const last=v.quotes.at(-1)||{};state.sheet={type:'quote',vid:v.id,q:{...emptyQuote(),rental:last.rental??'',meal:last.meal??'',minGuests:last.minGuests??''}};render()},
+ saveQuote:()=>{const v=byId(state.sheet.vid);const q=state.sheet.q;if(!q.weddingDate){toast('희망 예식일을 골라주세요');return}if(q.weddingTime&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(q.weddingTime)){toast('시간은 HH:MM 형식으로 입력해주세요');return}
+  if(v.quotes.length===1&&!v.quotes[0].weddingDate&&!has(v.quotes[0].meal))v.quotes=[];v.quotes.push(q);persist(v);state.sheet=null;render();toast(`견적 ${v.quotes.length}을 추가했어요`)},
+ // form
+ choose:el=>{const p=el.dataset.path,val=el.dataset.val;const cur=getP(state,p);setP(state,p,cur===val?'':val);el.parentElement.querySelectorAll('.opt').forEach(b=>b.classList.toggle('on',b.dataset.val===getP(state,p)));updateCalcs()},
+ setStatus:el=>{state.draft.status=el.dataset.k;el.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el))},
+ toggleSec:el=>{const k=el.dataset.k;const s=el.closest('.osec');s.classList.toggle('open');s.classList.contains('open')?state.openSecs.add(k):state.openSecs.delete(k)},
+ rate:el=>{const n=+el.dataset.val;state.draft.rating=state.draft.rating===n?0:n;render()},
+ addTag:el=>{state.draft[el.dataset.k].push(el.dataset.val);render()},
+ rmTag:el=>{state.draft[el.dataset.k].splice(+el.dataset.i,1);render()},
+ formAddQuote:()=>{const last=state.draft.quotes.at(-1)||{};state.draft.quotes.push({...emptyQuote(),rental:last.rental??'',meal:last.meal??'',minGuests:last.minGuests??''});render();toast('이전 견적 금액을 미리 채워뒀어요')},
+ rmQuote:el=>{state.draft.quotes.splice(+el.dataset.i,1);render()},
+ tempSave:()=>{if(state.params.mode!=='new')return;try{localStorage.setItem(KEY+'-draft',JSON.stringify(state.draft));toast('임시저장했어요')}catch(e){toast('임시저장하지 못했어요')}},
+ saveVenue:()=>{const d=state.draft;if(!d.name.trim()){toast('업체명을 입력해주세요');const n=$('#nameIn');if(n){n.focus();n.closest('.box').classList.add('err')}return}
+  const bad=[d.consult.time,...d.quotes.map(q=>q.weddingTime)].find(t=>t&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(t));if(bad){toast(`시간 "${bad}"을 HH:MM 형식으로 고쳐주세요`);return}
+  if(d._memo&&d._memo.trim())d.memos.push({id:uid(),date:todayStr,text:d._memo.trim()});delete d._memo;
+  const isNew=state.params.mode==='new';if(isNew){d.createdAt=Date.now();venues.push(d);try{localStorage.removeItem(KEY+'-draft')}catch(e){}}else{venues[venues.findIndex(v=>v.id===d.id)]=d}
+  persist(d);state.stack.pop();state.screen='detail';state.params={id:d.id};if(!isNew){}else state.stack.push({screen:'home',params:{}});scrollMem[skey()]=0;render();toast(isNew?'업체를 추가했어요':'수정 내용을 저장했어요')},
+ pickDate:el=>{const cur=getP(state,el.dataset.path);const base=cur||(el.dataset.path.includes('weddingDate')?'2027-05-01':todayStr);state.picker={path:el.dataset.path,label:el.dataset.label,sel:cur||'',month:base.slice(0,7)};render()},
+ pkSel:el=>{state.picker.sel=el.dataset.date;render()},
+ pkMonth:el=>{const [y,m]=state.picker.month.split('-').map(Number);const d=new Date(y,m-1+(+el.dataset.d),1);state.picker.month=`${d.getFullYear()}-${pad2(d.getMonth()+1)}`;render()},
+ pkClose:(el,e)=>{if(!el.dataset.force&&e.target!==el)return;state.picker=null;render()},
+ pkOk:()=>{const p=state.picker;if(p.sel)setP(state,p.path,p.sel);state.picker=null;render()},
+ // compare
+ cmpRemove:el=>{state.compareIds=state.compareIds.filter(i=>i!==el.dataset.id);render()},
+ cmpAdd:()=>{state.sheet={type:'cmpAdd'};render()},
+ cmpPick:el=>{state.compareIds.push(el.dataset.id);state.sheet=null;render()},
+ // schedule
+ calSel:el=>{state.cal.sel=state.cal.sel===el.dataset.date?null:el.dataset.date;render()},
+ calMonth:el=>{const [y,m]=state.cal.month.split('-').map(Number);const d=new Date(y,m-1+(+el.dataset.d),1);state.cal.month=`${d.getFullYear()}-${pad2(d.getMonth()+1)}`;render()},
+ calView:el=>{state.cal.view=el.dataset.k;render()},
+ // memo tab
+ askReset:()=>{state.sheet={type:'confirm',title:'샘플 데이터로 되돌릴까요?',desc:'지금까지 입력한 업체와 메모가 지워지고 처음 예시 데이터로 돌아가요.',ok:'doReset',okLabel:'되돌리기'};render()},
+ doReset:()=>{venues=seed();state.compareIds=['v2','v3','v1'];saveLocal();state.sheet=null;tab('home');toast('샘플 데이터로 되돌렸어요')},
+ // photos
+ pcat:el=>{state.photoCat=el.dataset.k;render()},
+ view:el=>go('viewer',{id:state.params.id,i:+el.dataset.i}),
+ vnav:el=>{state.params.i+=+el.dataset.d;render()},
+ setPcat:el=>{const v=byId(state.params.id);v.photos[state.params.i].cat=el.dataset.k;persist(v);render()},
+ askDelPhoto:()=>{state.sheet={type:'confirm',title:'사진을 삭제할까요?',desc:'삭제한 사진은 되돌릴 수 없어요.',ok:'delPhoto',okLabel:'삭제'};render()},
+ delPhoto:()=>{const v=byId(state.params.id);const [gone]=v.photos.splice(state.params.i,1);if(gone&&gone.assetId&&ASSETS)ASSETS.delete(gone.assetId).catch(()=>{});persist(v);state.sheet=null;if(!v.photos.length){back()}else{state.params.i=Math.min(state.params.i,v.photos.length-1);render()}},
+ addPhoto:()=>$('#fileIn').click()
+};
+const appEl=$('#app');
+appEl.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||!appEl.contains(el))return;const f=A[el.dataset.act];if(f){f(el,e)}});
+appEl.addEventListener('input',e=>{const t=e.target;
+ if(t.dataset.path){let val=t.value;
+  if(t.hasAttribute('data-num')){const d=val.replace(/[^\d]/g,'');val=d?Number(d):'';t.value=d?Number(d).toLocaleString('ko-KR'):''}
+  if(t.hasAttribute('data-time')){const d=val.replace(/\D/g,'').slice(0,4);val=d.length>2?d.slice(0,2)+':'+d.slice(2):d;t.value=val;const box=t.closest('.box');box.classList.toggle('err',val.length===5&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(val))}
+  setP(state,t.dataset.path,val);if(t.id==='nameIn')t.closest('.box').classList.remove('err');updateCalcs()}
+ if(t.hasAttribute('data-search')){state.search=t.value;$('#venueList').innerHTML=listHTML()}
+ if(t.hasAttribute('data-photomemo')){const v=byId(state.params.id);v.photos[state.params.i].memo=t.value;persist(v,700)}});
+appEl.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||e.isComposing)return;
+ if(t.dataset.taginput){e.preventDefault();const k=t.dataset.taginput;const val=t.value.trim();if(val&&!state.draft[k].includes(val))state.draft[k].push(val);render();const n=$(`[data-taginput="${k}"]`);if(n)n.focus()}
+ if(t.id==='quickMemo'){e.preventDefault();A.addMemo()}
+ if(t.classList.contains('inp')&&t.tagName==='INPUT')e.preventDefault()});
+$('#fileIn').addEventListener('change',async e=>{const v=byId(state.params.id);const files=[...e.target.files];e.target.value='';if(!v||!files.length)return;
+ if(MODE==='db'&&!ASSETS){toast('사진은 편집 권한이 있는 사람만 올릴 수 있어요');return}
+ toast('사진을 올리는 중이에요…');let ok=0;
+ for(const f of files){try{const cat=state.photoCat!=='전체'?state.photoCat:'홀';
+  if(MODE==='db'){const blob=await shrink(f,true);const r=await ASSETS.upload(blob);v.photos.push({id:uid(),cat,assetId:r.id,date:todayStr,memo:''})}
+  else{const src=await shrink(f,false);v.photos.push({id:uid(),cat,src,date:todayStr,memo:''})}ok++}catch(err){}}
+ persist(v);render();toast(ok?`사진 ${ok}장을 올렸어요`:'사진을 올리지 못했어요')});
+function shrink(file,asBlob){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const img=new Image();img.onload=()=>{const m=1200;let {width:w,height:h}=img;const s=Math.min(1,m/Math.max(w,h));const c=document.createElement('canvas');c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  if(asBlob)c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/jpeg',.82);else res(c.toDataURL('image/jpeg',.8))};img.onerror=rej;img.src=r.result};r.readAsDataURL(file)})}
+/* 화면 갱신: 입력 중에는 미뤘다가 입력이 끝나면 그린다 */
+function softRender(){const a=document.activeElement;const typing=a&&appEl.contains(a)&&/INPUT|TEXTAREA/.test(a.tagName);
+ if(typing||state.screen==='form'||state.sheet||state.picker){pendingRender=true;return}pendingRender=false;render()}
+appEl.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender)softRender()},300));
+/* 시작: 공유 저장소 연결 */
+(async()=>{let db=null;
+ try{if(window.claude&&typeof claude.use==='function')db=await claude.use('db')}catch(e){}
+ if(!db){MODE='local';loadLocal();render();return}
+ DB=db;try{ASSETS=await claude.use('assets')}catch(e){ASSETS=null}
+ const timer=setTimeout(()=>{if(MODE==='loading'){loadNote='데이터를 아직 불러오지 못했어요. 연결을 확인해주세요';render()}},10000);
+ db.collection('venues').onSnapshot(snap=>{
+  venues=snap.docs.map(d=>Object.assign(clone(d.data()),{id:d.id})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const first=MODE!=='db';MODE='db';if(!snap.metadata.fromCache){clearTimeout(timer);loadNote=''}
+  first?render():softRender()},
+ e=>{clearTimeout(timer);if(MODE!=='db'){MODE='local';loadLocal();toast('공유 저장소에 연결하지 못해 이 기기에만 저장돼요')}else{loadNote='저장소 연결이 끊겼어요. 새로고침해 주세요'}render()});
+})();
+render();
+</script>
+</body>
+</html>
