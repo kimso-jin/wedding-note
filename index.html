@@ -102,7 +102,7 @@ h3{font-size:15px;font-weight:700}
 .kv span{color:var(--gray);flex:none}.kv b{font-weight:500;text-align:right}.kv b.strong{font-weight:700}.kv b.none{color:#C2BAB4;font-weight:400}
 .para{padding:6px 0;font-size:13px;display:flex;flex-direction:column;gap:3px}.para span{color:var(--gray)}.para b{font-weight:500;line-height:1.5}
 .summary{font-size:13px;font-weight:500}.summary.none{color:#C2BAB4;font-weight:400}
-.note{font-size:12px;color:var(--light)}
+.note{font-size:11px;color:var(--light)}
 .quote{background:var(--bg);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:2px}
 .q-hd{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px}
 .qno{background:var(--rose);color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:2px 6px;margin-right:6px}
@@ -129,7 +129,7 @@ h3{font-size:15px;font-weight:700}
 /* form */
 .form{display:flex;flex-direction:column;gap:26px;padding:12px 20px 28px}
 .fsec{display:flex;flex-direction:column;gap:12px}
-.fsec>header h2{font-size:15px}.fsec>header p{font-size:12px;color:var(--light);margin-top:2px}
+.fsec>header h2{font-size:15px}.fsec>header p{font-size:11px;color:var(--light);margin-top:2px}
 .fld{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
 .lbl{font-size:12px;font-weight:500;color:var(--gray)}.lbl i{color:var(--rose);font-style:normal;font-weight:700;margin-left:2px}
 .box{height:42px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:0 12px;min-width:0}
@@ -366,11 +366,12 @@ const SUG_ASK=['원하는 날짜 가능한지','식대에 주류 포함인지','
 const DEFAULT_OPTS=['포토테이블','플라워 샤워','사회자','DVD'];
 const defaultOpts=()=>DEFAULT_OPTS.map(n=>({id:uid(),name:n,on:false,price:'',incl:false}));
 const optSum=v=>(v.options||[]).reduce((a,o)=>a+(o.on&&!o.incl?num(o.price):0),0);
-const emptyEst=()=>({id:uid(),month:'',time:'',meal:'',guests:'',rental:''});
-const estLabel=e=>(e.month?fmtYM(e.month):'시기 미정')+(e.time?' · '+e.time:'');
-const ests=v=>(v.estimates||[]).filter(e=>e.month||e.time||has(e.meal)||has(e.guests)||has(e.rental));
+const emptyEst=()=>({id:uid(),date:'',month:'',time:'',meal:'',guests:'',rental:''});
+const fmtMDw=s=>{const d=parseD(s);return d?`${pad2(d.getMonth()+1)}/${pad2(d.getDate())}(${WD[d.getDay()]})`:''};
+const estLabel=e=>e.date?fmtMDw(e.date)+(e.time?' '+e.time:''):(e.month?fmtYM(e.month)+(e.time?' · '+e.time:''):(e.time?'날짜 미정 · '+e.time:'날짜 미정'));
+const ests=v=>(v.estimates||[]).filter(e=>e.date||e.month||e.time||has(e.meal)||has(e.guests)||has(e.rental));
 const estTotal=e=>{const m=num(e.meal),g=num(e.guests),r=num(e.rental);return (m&&g?m*g:0)+r};
-const estBk=(e,br)=>`식대 (${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'})${br?'<br>':' '}+ 대관료 ${has(e.rental)?(num(e.rental)?man(e.rental):'0원'):'-'}`;
+const estBk=e=>`(${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'}) + ${has(e.rental)?(num(e.rental)?man(e.rental):'0원'):'-'}`;
 const cPromo=v=>(v.common&&v.common.promo)||((v.quotes||[]).find(q=>q.promo)||{}).promo||'';
 const estSumHTML=es=>es.map((e,i)=>`<div class="est-sum"><div class="es-top"><span class="qno blue">견적 ${i+1}</span><b class="es-t">${estLabel(e)}</b><b class="blue-t">${estTotal(e)?'약 '+man(estTotal(e)):'-'}</b></div><div class="es-bk">${estBk(e)}</div></div>`).join('');
 const fmtYM=x=>x?`${+x.slice(0,4)}년 ${+x.slice(5,7)}월`:'';
@@ -568,7 +569,7 @@ const frow=(...a)=>`<div class="frow">${a.join('')}</div>`;
 const help=t=>`<div class="helper">${t}</div>`;
 function progOf(key){const f=OPT_SECS[key][2];return [f.filter(p=>has(D(p))).length,f.length]}
 function estHTML(i){const q=state.draft.quotes[i];const t=calcQ(state.draft,q);return `<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>대관료</span><span>${won(t.rental)||'0원'}</span></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div><div class="r"><span>선택사항 (대관료 미포함)</span><span>${won(t.opt)||'0원'}</span></div><div class="r"><span>부가세 (공통 조건 '별도' 시 10%)</span><span>${won(t.vat)||'0원'}</span></div>`}
-function candEstHTML(i){const e=state.draft.estimates[i];const t=estTotal(e);return `<div><b style="font-size:13px">예상 총액</b><div class="note">${estBk(e,1)}</div></div><b class="rose" style="font-size:17px;white-space:nowrap">${t?man(t):'0원'}</b>`}
+function candEstHTML(i){const e=state.draft.estimates[i];const t=estTotal(e);return `<div><b style="font-size:13px">예상 총액</b><div class="note">${estBk(e)}</div></div><b class="rose" style="font-size:17px;white-space:nowrap">${t?man(t):'0원'}</b>`}
 function optionsEditor(){const list=state.draft.options;
  return `<div class="fld"><div class="row between"><span class="lbl">선택사항</span><span class="note">이용할 항목에 체크하고 요금을 적어주세요</span></div>
  <div class="optlist"><div class="ol-hd"><span style="width:20px"></span><span style="flex:1">항목</span><span style="width:108px;text-align:center">요금</span><span style="width:52px;text-align:center;line-height:1.2">대관료<br>포함</span></div>
@@ -579,10 +580,10 @@ function optionsEditor(){const list=state.draft.options;
  <button type="button" class="ol-add" data-act="optAdd">${I.plus}선택사항 추가 (예: 폐백, 원판 촬영)</button></div>
  <div class="helper" style="margin-top:0">대관료에 포함되지 않은 항목의 요금은 견적의 예상 총 금액에 합산돼요</div></div>`}
 function estBoxesHTML(){const d=state.draft;return d.estimates.map((e,i)=>state.openEst===i?`<div class="qbox"><div class="qbox-hd"><div class="row"><span class="qno">견적 ${i+1}</span><b>${estLabel(e)}</b></div>${d.estimates.length>1?`<button type="button" class="rm" data-act="rmEst" data-i="${i}">삭제</button>`:''}</div>
-   ${frow(`<div class="fld"><span class="lbl">견적 날짜</span><div class="box"><button type="button" class="inp" data-act="pickMonth" data-path="draft.estimates.${i}.month" data-label="견적 날짜">${e.month?fmtYM(e.month):'<span class="ph">YYYY년 MM월</span>'}</button>${I.cal}</div></div>`,fld('예식 시간',`estimates.${i}.time`,{type:'time'}))}
+   ${frow(fld('견적 날짜',`estimates.${i}.date`,{type:'date',req:1}),fld('예식 시간',`estimates.${i}.time`,{type:'time',req:1}))}
    ${frow(fld('식대 (1인)',`estimates.${i}.meal`,{type:'num',suf:'원'}),fld('예상 보증인원',`estimates.${i}.guests`,{type:'num',suf:'명'}))}${fld('대관료',`estimates.${i}.rental`,{type:'num',suf:'원'})}
    <div class="est-total" data-calc="candEst" data-i="${i}">${candEstHTML(i)}</div></div>`
-   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno">견적 ${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e,1)}</div></div><b class="rose">${estTotal(e)?man(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
+   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno">견적 ${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e)}</div></div><b class="rose">${estTotal(e)?man(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
 function checkEditor(){const list=state.draft.checklist;return `<div class="fsec"><header><h2>상담 때 물어볼 것</h2><p>상담 갈 때 체크리스트로 보여드려요</p></header><div class="tagbox">${list.map((c,i)=>`<span class="tag" style="background:var(--bg);color:var(--dark)">${esc(c.text)}<button type="button" data-act="rmCheck" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-checkinput placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
  <div class="sugg">${SUG_ASK.filter(x=>!list.some(c=>c.text===x)).map(x=>`<button type="button" data-act="addCheck" data-val="${x}">+ ${x}</button>`).join('')}</div></div>`}
 function tagEditor(k,sugg){const cls=k==='pros'?'pro':'con';const list=state.draft[k];
@@ -596,7 +597,7 @@ SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';cons
  const topnav=`<div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="닫기">${I.x}</button><b>${isNew?'업체 추가':'업체 정보 수정'}</b><button style="font-size:12px;color:var(--gray);font-weight:500;width:56px" data-act="tempSave">${isNew?'임시저장':''}</button></div>`;
  if(cand){const estBoxes=estBoxesHTML();
   return `<div class="scroll">${statusBar()}${topnav}<div class="form">${statusSec}${basicSec}
-   <div class="fsec"><header><h2>예상 견적</h2><p>견적 날짜별로 알아본 금액을 대략 적어두면 다른 업체와 비교할 수 있어요</p></header>${estBoxes}<button type="button" class="dashed" data-act="addEst">${I.plus}다른 시기 예상 견적 추가</button></div>
+   <div class="fsec"><header><h2>예상 견적</h2><p>견적 날짜·시간별로 알아본 금액을 대략 적어두면 다른 업체와 비교할 수 있어요</p></header>${estBoxes}<button type="button" class="dashed" data-act="addEst">${I.plus}다른 시기 예상 견적 추가</button></div>
    ${checkEditor()}${memoSec}${delLink}</div></div><div class="cta"><button class="btn-primary" data-act="saveVenue">후보로 저장하기</button></div>`}
  if(d.status==='reserved'){return `<div class="scroll">${statusBar()}${topnav}<div class="form">${statusSec}${basicSec}
   <div class="fsec"><header><h2>상담 예약</h2></header>${frow(fld('상담 날짜','consult.date',{type:'date'}),fld('시간','consult.time',{type:'time'}))}${fld('연락처','consult.phone',{ph:'010-0000-0000',tel:1})}</div>
@@ -781,10 +782,11 @@ const A={
  tempSave:()=>{if(state.params.mode!=='new')return;try{localStorage.setItem(KEY+'-draft',JSON.stringify(state.draft));toast('임시저장했어요')}catch(e){toast('임시저장하지 못했어요')}},
  saveVenue:()=>{const d=state.draft;if(!d.name.trim()){toast('업체명을 입력해주세요');const n=$('#nameIn');if(n){n.focus();n.closest('.box').classList.add('err')}return}
   const bad=[d.consult.time,...d.quotes.map(q=>q.weddingTime),...(d.estimates||[]).map(e=>e.time)].find(t=>t&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(t));if(bad){toast(`시간 "${bad}"을 HH:MM 형식으로 고쳐주세요`);return}
+  if(d.status==='candidate'||d.status==='reserved'){const ei=(d.estimates||[]).findIndex(e=>(e.date||e.time||has(e.meal)||has(e.guests)||has(e.rental))&&(!e.date||!e.time));if(ei>=0){state.openEst=ei;render();toast(`견적 ${ei+1}의 날짜와 시간을 입력해주세요`);return}}
   if(d._memo&&d._memo.trim())d.memos.push({id:uid(),date:todayStr,text:d._memo.trim()});delete d._memo;
   const isNew=state.params.mode==='new';if(isNew){d.createdAt=Date.now();venues.push(d);try{localStorage.removeItem(KEY+'-draft')}catch(e){}}else{venues[venues.findIndex(v=>v.id===d.id)]=d}
   persist(d);state.stack.pop();state.screen='detail';state.params={id:d.id};if(!isNew){}else state.stack.push({screen:'home',params:{}});scrollMem[skey()]=0;render();toast(isNew?'업체를 추가했어요':'수정 내용을 저장했어요')},
- pickDate:el=>{const cur=getP(state,el.dataset.path);const base=cur||(el.dataset.path.includes('weddingDate')?'2027-05-01':todayStr);state.picker={path:el.dataset.path,label:el.dataset.label,sel:cur||'',month:base.slice(0,7)};render()},
+ pickDate:el=>{const cur=getP(state,el.dataset.path);const ep=el.dataset.path.match(/estimates\.(\d+)\.date/);const em=ep&&(state.draft.estimates[+ep[1]]||{}).month;const base=cur||(em?em+'-01':(el.dataset.path.includes('weddingDate')||ep)?'2027-05-01':todayStr);state.picker={path:el.dataset.path,label:el.dataset.label,sel:cur||'',month:base.slice(0,7)};render()},
  pkSel:el=>{state.picker.sel=el.dataset.date;A.pkOk()},
  pkMonth:el=>{const [y,m]=state.picker.month.split('-').map(Number);const d=new Date(y,m-1+(+el.dataset.d),1);state.picker.month=`${d.getFullYear()}-${pad2(d.getMonth()+1)}`;render()},
  pkClose:(el,e)=>{if(!el.dataset.force&&e.target!==el)return;state.picker=null;render()},
