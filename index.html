@@ -370,6 +370,9 @@ const emptyEst=()=>({id:uid(),month:'',time:'',meal:'',guests:'',rental:''});
 const estLabel=e=>(e.month?fmtYM(e.month):'시기 미정')+(e.time?' · '+e.time:'');
 const ests=v=>(v.estimates||[]).filter(e=>e.month||e.time||has(e.meal)||has(e.guests)||has(e.rental));
 const estTotal=e=>{const m=num(e.meal),g=num(e.guests),r=num(e.rental);return (m&&g?m*g:0)+r};
+const estBk=(e,br)=>`식대 (${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'})${br?'<br>':' '}+ 대관료 ${has(e.rental)?(num(e.rental)?man(e.rental):'0원'):'-'}`;
+const cPromo=v=>(v.common&&v.common.promo)||((v.quotes||[]).find(q=>q.promo)||{}).promo||'';
+const estSumHTML=es=>es.map((e,i)=>`<div class="est-sum"><div class="es-top"><span class="qno blue">견적 ${i+1}</span><b class="es-t">${estLabel(e)}</b><b class="blue-t">${estTotal(e)?'약 '+man(estTotal(e)):'-'}</b></div><div class="es-bk">${estBk(e)}</div></div>`).join('');
 const fmtYM=x=>x?`${+x.slice(0,4)}년 ${+x.slice(5,7)}월`:'';
 const isCand=v=>v.status==='candidate';
 const SUG_CONS=['천장 낮음','주차 협소','식사 아쉬움','대기실 좁음','엘리베이터 대기'];
@@ -490,9 +493,9 @@ const sumLine=arr=>{const a=arr.filter(Boolean);return a.length?`<div class="sum
 const PRE_KEY='wn-preest-';
 function preOpen(v){let x=null;try{x=localStorage.getItem(PRE_KEY+v.id)}catch(e){}return x===null?v.status==='reserved':x==='1'}
 function preEstCard(v){const es=ests(v);if(!es.length)return '';const open=preOpen(v);
- return `<section class="card"><div class="card-hd" data-act="togglePre"><div class="row gap6"><h3>상담 전 예상 견적</h3><span class="est-tag">상담후보 때 입력</span></div><div class="acts">${open?`<span class="edit" data-act="edit" aria-label="수정">${I.edit}</span>`:''}<span class="toggle" aria-label="${open?'접기':'펼치기'}">${open?I.chevU:I.chevD}</span></div></div>
- ${open?`<div class="note">상담 전에 알아본 금액이에요. 상담에서 받은 실제 견적과 비교해 보세요</div>`+es.map((e,i)=>`<div class="est-sum"><div class="es-top"><span class="qno blue">견적 ${i+1}</span><b class="es-t">${estLabel(e)}</b><b class="blue-t">${estTotal(e)?'약 '+man(estTotal(e)):'-'}</b></div><div class="es-bk">식대 ${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'}${num(e.rental)?' + 대관료 '+won(e.rental):''}</div></div>`).join(''):''}</section>`}
-function hasMoreData(v){const cm=v.common||{};const any=o=>Object.values(o||{}).some(has);return ['basis','changeable','vat','cardFee','pkg','extra'].some(k=>has(cm[k]))||(v.options||[]).some(o=>o.on)||any(v.meal)||any(v.hallInfo)||any(v.parking)||any(v.payment)||v.pros.length||v.cons.length}
+ return `<section class="card"><div class="card-hd" data-act="togglePre"><h3>상담 전 예상 견적</h3><div class="acts">${open?`<span class="edit" data-act="edit" aria-label="수정">${I.edit}</span>`:''}<span class="toggle" aria-label="${open?'접기':'펼치기'}">${open?I.chevU:I.chevD}</span></div></div>
+ ${open?`<div class="note">상담 전에 알아본 금액이에요. 상담에서 받은 실제 견적과 비교해 보세요</div>`+estSumHTML(es):''}</section>`}
+function hasMoreData(v){const cm=v.common||{};const any=o=>Object.values(o||{}).some(has);return ['basis','changeable','vat','cardFee','pkg','extra','promo'].some(k=>has(cm[k]))||!!cPromo(v)||(v.options||[]).some(o=>o.on)||any(v.meal)||any(v.hallInfo)||any(v.parking)||any(v.payment)||v.pros.length||v.cons.length}
 function checklistCard(v){const list=v.checklist||[];const done=list.filter(c=>c.done).length;
  return `<section class="card"><div class="card-hd"><div class="row gap6"><h3>상담 때 물어볼 것</h3>${list.length?`<h3 class="rose">${done}/${list.length}</h3>`:''}</div></div>
  ${list.map((c,i)=>`<button class="chk ${c.done?'on':''}" data-act="toggleCheck" data-i="${i}"><i>${c.done?I.check:''}</i><span>${esc(c.text)}</span></button>`).join('')||'<div class="summary none">상담 때 물어볼 걸 적어두면 체크리스트로 보여드려요</div>'}
@@ -505,9 +508,8 @@ function candDetail(v){const es=ests(v);const created=v.createdAt?new Date(v.cre
   ${v.photos.length?`<button class="thumb" data-act="photos" aria-label="사진 보기">${photoFill(v.photos[0])}<span class="cnt">${v.photos.length}</span></button>`:`<button class="thumb thumb-empty" data-act="photos">${I.image}<span>사진 추가</span></button>`}</div>
  <div class="frow px20 pb20"><button class="btn-primary" style="flex:1" data-act="reserveNow">${I.cal}상담 예약하기</button><a class="btn-outline" style="padding:0 16px" href="https://map.kakao.com/link/search/${encodeURIComponent(v.name||v.location||'')}" target="_blank" rel="noopener">${I.pin}카카오맵</a></div>
  <div class="sections">
-  <section class="card"><div class="card-hd"><div class="row gap6"><h3>예상 견적</h3><span class="est-tag">간단 입력</span></div><span class="edit" data-act="edit" aria-label="수정">${I.edit}</span></div>
-   ${es.map((e,i)=>{const t=estTotal(e);return `<div class="quote"><div class="q-hd"><div class="row"><span class="qno">견적 ${i+1}</span><b>${estLabel(e)}</b></div></div>${kv('식대 (1인)',won(e.meal))}${kv('예상 보증인원',has(e.guests)?e.guests+'명':'')}${kv('대관료',has(e.rental)?(num(e.rental)===0?'0원 (식대 포함)':won(e.rental)):'')}
-    <div class="total"><div class="row between"><b>예상 총액</b><b>${t?man(t):'-'}</b></div><small>식대 ${won(e.meal)||'0원'} × ${has(e.guests)?e.guests:0}명 + 대관료 ${won(e.rental)||'0원'}</small></div></div>`}).join('')||'<div class="summary none">아직 알아본 금액이 없어요. 연필 아이콘을 눌러 대략 적어두세요</div>'}
+  <section class="card"><div class="card-hd"><h3>예상 견적</h3></div>
+   ${es.length?`<div class="note">상담 전에 알아본 금액이에요. 상담 후 실제 견적과 비교해보세요</div>`+estSumHTML(es):`<div class="q-empty"><b>아직 알아본 금액이 없어요</b><span>대략 적어두면 다른 업체와 비교할 수 있어요</span></div><button class="dashed" data-act="edit">${I.plus}예상 견적 입력</button>`}
    </section>
   ${checklistCard(v)}
   <section class="card"><div class="card-hd"><div class="row gap6"><h3>메모</h3><h3 class="rose">${v.memos.length}</h3></div></div>
@@ -520,7 +522,6 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();if
  const consultWhen=c.date?`${fmtFull(c.date)} ${fmtTime(c.time)}`:'';const realQ=v.quotes.filter(q=>q.weddingDate||has(q.meal)||has(q.minGuests)||has(q.rental));const showMore=v.status!=='reserved'||hasMoreData(v);
  const quotes=v.quotes.map((q,i)=>{const t=calcQ(v,q);return `<div class="quote"><div class="q-hd"><div class="row"><span class="qno">견적 ${i+1}</span><b>${q.weddingDate?fmtFull(q.weddingDate).replace(/^\d{4}\./,m=>m)+' '+esc(q.weddingTime||''):'예식일 미정'}</b></div><small>${q.received?fmtMD(q.received).slice(0,5)+' 받음':''}</small></div>
   ${kv('대관료',has(q.rental)?(num(q.rental)===0?'0원 (식대 포함)':won(q.rental)):'')}${kv('식대 (1인)',won(q.meal))}${kv('최소 보증인원',has(q.minGuests)?q.minGuests+'명':'')}${kv('총 식대',t.totalMeal?won(t.totalMeal):'',{strong:1})}
-  <div class="divider"></div>${para('당일 혜택 & 프로모션',q.promo,'var(--rose)')}
   <div class="total"><div class="row between"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><small>대관료 ${won(t.rental)||'0원'} + 총 식대 ${won(t.totalMeal)||'0원'}${t.opt?` + 선택사항 ${won(t.opt)}`:''}${cm.vat==='별도'?` + 부가세 ${won(t.vat)}`:cm.vat==='포함'?' · 부가세 포함':''}</small></div></div>`}).join('');
  const memos=v.memos.slice().reverse();
  return `<div class="scroll">${statusBar()}
@@ -534,7 +535,7 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();if
   <section class="card"><div class="card-hd"><h3>예식일별 견적</h3><span class="edit" data-act="edit" aria-label="수정">${I.edit}</span></div>${realQ.length?quotes:`<div class="q-empty"><b>아직 받은 견적이 없어요</b><span>상담에서 받은 견적을 입력하면 ${ests(v).length?'예상 견적과 나란히 비교해 보여드려요':'여기에 정리해 보여드려요'}</span></div>`}<button class="dashed" data-act="addQuote">${I.plus}${realQ.length?'다른 예식일 견적 추가':'상담에서 받은 견적 입력'}</button></section>
   ${v.status==='reserved'?checklistCard(v):preEstCard(v)}
   ${showMore?`
-  ${coll(k('common'),'업체 공통 조건',sumLine([cm.basis,cm.changeable&&'인원 변경 '+cm.changeable,cm.vat&&'부가세 '+cm.vat,(v.options||[]).filter(o=>o.on).length&&`선택사항 ${(v.options||[]).filter(o=>o.on).length}개`]),`<div class="note">모든 예식일 견적에 똑같이 적용돼요</div>`+kv('보증인원 기준',cm.basis)+kv('인원 변경',cm.changeable)+kv('부가세',cm.vat)+kv('카드 결제 수수료',cm.cardFee)+((v.options||[]).some(o=>o.on)?`<div class="lbl" style="margin-top:6px">선택사항</div>`+(v.options||[]).filter(o=>o.on).map(o=>kv('· '+esc(o.name||'이름 없음'),o.incl?'대관료 포함':(has(o.price)?won(o.price):'요금 미입력'))).join(''):kv('선택사항',''))+(cm.pkg?para('패키지 구성',cm.pkg):'')+(cm.extra?para('추가 비용 발생 항목',cm.extra):''))}
+  ${coll(k('common'),'업체 공통 조건',sumLine([(v.options||[]).filter(o=>o.on).length&&`선택사항 ${(v.options||[]).filter(o=>o.on).length}개`,cPromo(v)&&'당일 혜택 있음',cm.basis,cm.changeable&&'인원 변경 '+cm.changeable,cm.vat&&'부가세 '+cm.vat]),`<div class="note">모든 예식일 견적에 똑같이 적용돼요</div>`+((v.options||[]).some(o=>o.on)?`<div class="lbl" style="margin-top:6px">선택사항</div>`+(v.options||[]).filter(o=>o.on).map(o=>kv('· '+esc(o.name||'이름 없음'),o.incl?'대관료 포함':(has(o.price)?won(o.price):'요금 미입력'))).join(''):kv('선택사항',''))+(cPromo(v)?para('당일 혜택 & 프로모션',cPromo(v),'var(--rose)'):'')+kv('보증인원 기준',cm.basis)+kv('인원 변경',cm.changeable)+kv('부가세',cm.vat)+kv('카드 결제 수수료',cm.cardFee)+(cm.pkg?para('패키지 구성',cm.pkg):'')+(cm.extra?para('추가 비용 발생 항목',cm.extra):''))}
   ${coll(k('meal'),'식사',sumLine([ml.type,ml.alcohol&&'주류 '+ml.alcohol,ml.tasting==='가능'?`시식 ${has(ml.tastingCount)?ml.tastingCount+'인 ':''}가능`:ml.tasting==='불가'?'시식 불가':'']),kv('식사 형태',ml.type)+kv('주류 포함 여부',ml.alcohol)+kv('혼주 식사 공간',ml.parentsRoom)+kv('시식 가능 여부',ml.tasting?ml.tasting+(ml.tasting==='가능'&&has(ml.tastingCount)?` (${ml.tastingCount}인)`:''):''))}
   ${coll(k('hall'),'홀 정보',sumLine([hl.mood,has(hl.capacity)&&'착석 '+hl.capacity+'명',hl.lobby&&'로비 '+hl.lobby]),kv('전체적인 분위기',hl.mood)+kv('웨딩홀 수용인원',has(hl.capacity)?hl.capacity+'명 (착석)':'')+kv('로비 크기',hl.lobby)+kv('화환 반입',hl.wreath)+para('기본 꽃장식 구성',hl.flowers))}
   ${coll(k('parking'),'주차 · 교통',sumLine([has(pk.spots)&&pk.spots+'대',has(pk.freeHours)&&pk.freeHours+'시간 무료',pk.parentsParking&&'혼주 전용 '+pk.parentsParking]),kv('주차 가능 대수',has(pk.spots)?pk.spots+'대':'')+kv('주차 무료 시간',has(pk.freeHours)?pk.freeHours+'시간':'')+kv('혼주 전용 주차',pk.parentsParking)+kv('주차 편의성',pk.convenience)+para('대중교통 접근성',pk.transit))}
@@ -567,7 +568,7 @@ const frow=(...a)=>`<div class="frow">${a.join('')}</div>`;
 const help=t=>`<div class="helper">${t}</div>`;
 function progOf(key){const f=OPT_SECS[key][2];return [f.filter(p=>has(D(p))).length,f.length]}
 function estHTML(i){const q=state.draft.quotes[i];const t=calcQ(state.draft,q);return `<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>대관료</span><span>${won(t.rental)||'0원'}</span></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div><div class="r"><span>선택사항 (대관료 미포함)</span><span>${won(t.opt)||'0원'}</span></div><div class="r"><span>부가세 (공통 조건 '별도' 시 10%)</span><span>${won(t.vat)||'0원'}</span></div>`}
-function candEstHTML(i){const e=state.draft.estimates[i];const t=estTotal(e);return `<div><b style="font-size:13px">예상 총액</b><div class="note">식대 × 보증인원 + 대관료</div></div><b class="rose" style="font-size:17px">${t?man(t):'0원'}</b>`}
+function candEstHTML(i){const e=state.draft.estimates[i];const t=estTotal(e);return `<div><b style="font-size:13px">예상 총액</b><div class="note">${estBk(e,1)}</div></div><b class="rose" style="font-size:17px;white-space:nowrap">${t?man(t):'0원'}</b>`}
 function optionsEditor(){const list=state.draft.options;
  return `<div class="fld"><div class="row between"><span class="lbl">선택사항</span><span class="note">이용할 항목에 체크하고 요금을 적어주세요</span></div>
  <div class="optlist"><div class="ol-hd"><span style="width:20px"></span><span style="flex:1">항목</span><span style="width:108px;text-align:center">요금</span><span style="width:52px;text-align:center;line-height:1.2">대관료<br>포함</span></div>
@@ -581,14 +582,14 @@ function estBoxesHTML(){const d=state.draft;return d.estimates.map((e,i)=>state.
    ${frow(`<div class="fld"><span class="lbl">견적 날짜</span><div class="box"><button type="button" class="inp" data-act="pickMonth" data-path="draft.estimates.${i}.month" data-label="견적 날짜">${e.month?fmtYM(e.month):'<span class="ph">YYYY년 MM월</span>'}</button>${I.cal}</div></div>`,fld('예식 시간',`estimates.${i}.time`,{type:'time'}))}
    ${frow(fld('식대 (1인)',`estimates.${i}.meal`,{type:'num',suf:'원'}),fld('예상 보증인원',`estimates.${i}.guests`,{type:'num',suf:'명'}))}${fld('대관료',`estimates.${i}.rental`,{type:'num',suf:'원'})}
    <div class="est-total" data-calc="candEst" data-i="${i}">${candEstHTML(i)}</div></div>`
-   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno">견적 ${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">식대 ${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'}</div></div><b class="rose">${estTotal(e)?man(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
+   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno">견적 ${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e,1)}</div></div><b class="rose">${estTotal(e)?man(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
 function checkEditor(){const list=state.draft.checklist;return `<div class="fsec"><header><h2>상담 때 물어볼 것</h2><p>상담 갈 때 체크리스트로 보여드려요</p></header><div class="tagbox">${list.map((c,i)=>`<span class="tag" style="background:var(--bg);color:var(--dark)">${esc(c.text)}<button type="button" data-act="rmCheck" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-checkinput placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
  <div class="sugg">${SUG_ASK.filter(x=>!list.some(c=>c.text===x)).map(x=>`<button type="button" data-act="addCheck" data-val="${x}">+ ${x}</button>`).join('')}</div></div>`}
 function tagEditor(k,sugg){const cls=k==='pros'?'pro':'con';const list=state.draft[k];
  return `<div class="fld"><span class="lbl">${k==='pros'?'좋았던 점':'아쉬운 점'}</span><div class="tagbox">${list.map((t,i)=>`<span class="tag ${cls}">${esc(t)}<button type="button" data-act="rmTag" data-k="${k}" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-taginput="${k}" placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
  <div class="sugg">${sugg.filter(s=>!list.includes(s)).map(s=>`<button type="button" data-act="addTag" data-k="${k}" data-val="${s}">+ ${s}</button>`).join('')}</div></div>`}
 SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';const cand=d.status==='candidate';
- const statusSec=`<div class="fsec"><header><h2>진행 상태</h2></header><div class="seg">${Object.entries(STATUS).map(([k,s])=>`<button type="button" class="${d.status===k?'on':''}" data-act="setStatus" data-k="${k}">${s.label}</button>`).join('')}</div>${cand?`<div class="guide">${I.info}<span>상담후보는 꼭 필요한 것만 간단히 받아요. 상담 날짜가 잡히면 상담예약으로 바꿔주세요.</span></div>`:d.status==='reserved'?`<div class="guide rose">${I.info}<span>상담 날짜를 넣으면 메인에서 D-day로 알려드려요. 상담 전에 알아본 금액은 예상 견적에 적어두면 실제 견적과 비교할 수 있어요.</span></div>`:''}</div>`;
+ const statusSec=`<div class="fsec"><header><h2>진행 상태</h2></header><div class="seg">${Object.entries(STATUS).map(([k,s])=>`<button type="button" class="${d.status===k?'on':''}" data-act="setStatus" data-k="${k}">${s.label}</button>`).join('')}</div>${cand?`<div class="guide">${I.info}<span>상담후보는 꼭 필요한 것만 간단히 받아요. 상담 날짜가 잡히면 상담예약으로 바꿔주세요.</span></div>`:d.status==='done'?`<div class="guide rose">${I.info}<span>상담에서 받은 실제 견적과 조건을 자세히 적어두면 다른 업체와 정확하게 비교할 수 있어요.</span></div>`:d.status==='reserved'?`<div class="guide rose">${I.info}<span>상담 날짜를 넣으면 메인에서 D-day로 알려드려요. 상담 전에 알아본 금액은 예상 견적에 적어두면 실제 견적과 비교할 수 있어요.</span></div>`:''}</div>`;
  const basicSec=`<div class="fsec"><header><h2>기본 정보</h2></header>${fld('업체명','name',{req:1,ph:'예) 더채플앳청담',id:'nameIn'})}${fld('홀 이름','hall',{ph:'예) 커티지홀'})}${fld('위치','location',{type:'addr',ph:'건물명, 도로명으로 검색'})}</div>`;
  const memoSec=isNew?`<div class="fsec"><header><h2>메모</h2></header><textarea class="ta" data-path="draft._memo" placeholder="${cand?'예) 인스타 후기 보고 등록. 채광 좋아 보임':'상담 때 물어볼 것, 둘러보며 느낀 점을 자유롭게 적어두세요'}" maxlength="500">${esc(d._memo||'')}</textarea></div>`:'';
  const delLink=!isNew?`<button type="button" class="del-link" style="margin-top:-8px" data-act="askDelVenue">${I.trash}이 업체 삭제</button>`:'';
@@ -608,7 +609,6 @@ SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';cons
   ${fld('대관료',`quotes.${i}.rental`,{type:'num',suf:'원'})}${help('식대에 포함된 경우 0원으로 입력해요')}
   ${frow(fld('식대 (1인)',`quotes.${i}.meal`,{type:'num',suf:'원'}),fld('최소 보증인원',`quotes.${i}.minGuests`,{type:'num',suf:'명'}))}
   <div class="fld"><span class="lbl">총 식대 (자동 계산)</span><div class="box ro"><span class="inp" style="color:var(--gray)" data-calc="meal" data-i="${i}">${fmtNum(calcQ(d,q).totalMeal)||'0'}</span><span class="suf" style="color:var(--light)">원</span></div></div>${help('식대(1인) × 최소 보증인원으로 자동 입력돼요')}
-  ${area('당일 혜택 & 프로모션',`quotes.${i}.promo`,'예) 당일 계약 시 식대 3% 할인, 본식 스냅 제공')}
   <div class="est" data-calc="est" data-i="${i}">${estHTML(i)}</div></div>`).join('');
  const opt=(key,body)=>{const [t,desc]=OPT_SECS[key];const [a,b]=progOf(key);const open=state.openSecs.has(key);
   return `<section class="osec ${open?'open':''}" data-osec="${key}"><button type="button" class="osec-hd" data-act="toggleSec" data-k="${key}"><div><b>${t}</b><small>${desc}</small></div><span class="prog ${a===b?'full':''}" data-prog="${key}">${a}/${b} 입력</span>${I.chevD}</button><div class="osec-body">${body}</div></section>`};
@@ -623,8 +623,9 @@ SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';cons
   <div class="fsec"><header><h2>예식일별 견적</h2><p>예식일마다 달라지는 금액만 입력해요</p></header>${quotes}<button type="button" class="dashed" data-act="formAddQuote">${I.plus}다른 예식일 견적 추가</button></div>
   ${(ests(d).length||d.status==='reserved')?`<div class="fsec"><header><h2>상담 전 예상 견적</h2><p>상담 전에 알아본 금액이에요. 실제 견적과 비교할 때 보여드려요</p></header>${estBoxesHTML()}<button type="button" class="dashed" data-act="addEst">${I.plus}다른 시기 예상 견적 추가</button></div>`:''}
   <div class="fsec"><header><h2>업체 공통 조건</h2><p>예식일과 상관없이 같은 조건이에요. 한 번만 입력하면 모든 견적에 적용돼요</p></header>
+   ${optionsEditor()}${area('당일 혜택 & 프로모션','common.promo','예) 당일 계약 시 식대 3% 할인, 본식 스냅 제공')}
    ${choice('보증인원 기준','common.basis',['양가 합산','양가 각각'])}${help('양가 합산: 양가 하객을 합쳐 보증 / 양가 각각: 신랑·신부 측 각각 보증')}
-   ${choice('인원 변경 가능 여부','common.changeable',['가능','불가'])}${optionsEditor()}
+   ${choice('인원 변경 가능 여부','common.changeable',['가능','불가'])}
    ${frow(choice('부가세','common.vat',['포함','별도']),choice('카드 결제 수수료','common.cardFee',['있음','없음']))}</div>
   <div class="fsec"><header><h2>상세 정보</h2><p>필요한 항목만 펼쳐서 입력하세요. 나중에 채워도 돼요</p></header>
    ${opt('meal',choice('식사 형태','meal.type',['뷔페','코스','한상'])+frow(choice('주류 포함 여부','meal.alcohol',['포함','별도']),choice('혼주 식사 공간','meal.parentsRoom',['별도 제공','없음']))+frow(choice('시식 가능 여부','meal.tasting',['가능','불가']),fld('시식 인원','meal.tastingCount',{type:'num',suf:'명'})))}
@@ -718,7 +719,6 @@ function sheetHTML(){const s=state.sheet;if(!s)return '';let body='';
   <p class="note" style="margin-top:-8px">견적 ${v.quotes.length}의 금액을 미리 채워뒀어요. 달라진 칸만 고쳐주세요</p>
   ${frow(box('희망 예식일','sheet.q.weddingDate',{type:'date'}),box('예식 시간','sheet.q.weddingTime',{type:'time'}))}
   ${box('대관료','sheet.q.rental',{type:'num',suf:'원'})}${frow(box('식대 (1인)','sheet.q.meal',{type:'num',suf:'원'}),box('최소 보증인원','sheet.q.minGuests',{type:'num',suf:'명'}))}
-  ${box('당일 혜택 & 프로모션','sheet.q.promo',{ph:'예) 당일 계약 시 식대 3% 할인'})}
   <div class="est" data-calc="sheetEst"><div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${v.quotes.length}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}</div>
   <button class="btn-primary" data-act="saveQuote">견적 추가하기</button>`}
  return `<div class="overlay" data-act="closeSheet"><div class="sheet"><div class="grab"></div>${body}</div></div>`}
@@ -726,12 +726,12 @@ function pickerHTML(){const p=state.picker;if(!p)return '';
  if(p.mode==='month'){const Y=p.year;let cells='';for(let m=1;m<=12;m++){const v=`${Y}-${pad2(m)}`;cells+=`<button class="mcell ${v===p.sel?'sel':''} ${v===todayStr.slice(0,7)?'today':''}" data-act="pkMonthSel" data-v="${v}">${m}월</button>`}
   return `<div class="overlay" style="z-index:70" data-act="pkClose"><div class="sheet"><div class="grab"></div><div class="sheet-hd"><h3>${esc(p.label)} 선택</h3><button data-act="pkClose" data-force="1">${I.x}</button></div>
   <div class="cal-nav"><button class="circle" data-act="pkYear" data-d="-1">${I.chevL}</button><b>${Y}년</b><button class="circle" data-act="pkYear" data-d="1">${I.chevR}</button></div>
-  <div class="mgrid">${cells}</div><div class="picked"><span>선택한 시기</span><b>${p.sel?fmtYM(p.sel):'-'}</b></div><button class="btn-primary" data-act="pkOk">선택 완료</button></div></div>`}const [Y,M]=p.month.split('-').map(Number);const first=new Date(Y,M-1,1);const days=new Date(Y,M,0).getDate();
+  <div class="mgrid">${cells}</div></div></div>`}const [Y,M]=p.month.split('-').map(Number);const first=new Date(Y,M-1,1);const days=new Date(Y,M,0).getDate();
  let cells=WD.map((w,i)=>`<div class="wd ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('')+'<div></div>'.repeat(first.getDay());
  for(let d=1;d<=days;d++){const s=`${Y}-${pad2(M)}-${pad2(d)}`;const dow=(first.getDay()+d-1)%7;cells+=`<button class="d ${dow===0?'sun':dow===6?'sat':''} ${s===p.sel?'sel':''} ${s===todayStr?'today':''}" data-act="pkSel" data-date="${s}"><span>${d}</span></button>`}
  return `<div class="overlay" style="z-index:70" data-act="pkClose"><div class="sheet"><div class="grab"></div><div class="sheet-hd"><h3>${esc(p.label)} 선택</h3><button data-act="pkClose" data-force="1">${I.x}</button></div>
  <div class="cal-nav"><button class="circle" data-act="pkMonth" data-d="-12" aria-label="이전 해" style="font-size:11px;font-weight:700">-1년</button><button class="circle" data-act="pkMonth" data-d="-1">${I.chevL}</button><b>${Y}년 ${M}월</b><button class="circle" data-act="pkMonth" data-d="1">${I.chevR}</button><button class="circle" data-act="pkMonth" data-d="12" style="font-size:11px;font-weight:700">+1년</button></div>
- <div class="cal">${cells}</div><div class="picked"><span>선택한 날짜</span><b>${p.sel?fmtFull(p.sel):'-'}</b></div><button class="btn-primary" data-act="pkOk">선택 완료</button></div></div>`}
+ <div class="cal">${cells}</div></div></div>`}
 
 /* ===================== live calc updates ===================== */
 function updateCalcs(){document.querySelectorAll('[data-calc]').forEach(el=>{const k=el.dataset.calc,i=+el.dataset.i;
@@ -743,7 +743,7 @@ function updateCalcs(){document.querySelectorAll('[data-calc]').forEach(el=>{con
  if(state.screen==='form')Object.keys(OPT_SECS).forEach(k=>{const el=$(`[data-prog="${k}"]`);if(el){const [a,b]=progOf(k);el.textContent=`${a}/${b} 입력`;el.classList.toggle('full',a===b)}})}
 
 /* ===================== actions ===================== */
-const openForm=(mode,v)=>{state.draft=mode==='new'?emptyVenue():clone(v);state.openSecs=new Set();state.openEst=0;{const d=state.draft;if(!d.estimates||!d.estimates.length)d.estimates=[emptyEst()];d.checklist=d.checklist||[];d.source=d.source||'';if(!d.options)d.options=defaultOpts()}
+const openForm=(mode,v)=>{state.draft=mode==='new'?emptyVenue():clone(v);state.openSecs=new Set();state.openEst=(mode!=='new'&&v&&v.status==='reserved')?-1:0;{const d=state.draft;if(!d.estimates||!d.estimates.length)d.estimates=[emptyEst()];d.checklist=d.checklist||[];d.source=d.source||'';if(!d.options)d.options=defaultOpts();d.common=d.common||{};d.common.promo=cPromo(d);(d.quotes||[]).forEach(q=>q.promo='')}
  if(mode==='new'){try{const t=JSON.parse(localStorage.getItem(KEY+'-draft'));if(t&&t.name!==undefined){state.draft=t;setTimeout(()=>toast('임시저장한 내용을 불러왔어요'),50)}}catch(e){}}
  state.sheet=null;go('form',{mode,id:v&&v.id})};
 const A={
@@ -771,7 +771,7 @@ const A={
   if(v.quotes.length===1&&!v.quotes[0].weddingDate&&!has(v.quotes[0].meal))v.quotes=[];v.quotes.push(q);persist(v);state.sheet=null;render();toast(`견적 ${v.quotes.length}을 추가했어요`)},
  // form
  choose:el=>{const p=el.dataset.path,val=el.dataset.val;const cur=getP(state,p);setP(state,p,cur===val?'':val);el.parentElement.querySelectorAll('.opt').forEach(b=>b.classList.toggle('on',b.dataset.val===getP(state,p)));updateCalcs()},
- setStatus:el=>{state.draft.status=el.dataset.k;render()},
+ setStatus:el=>{state.draft.status=el.dataset.k;if(el.dataset.k==='reserved'&&ests(state.draft).length)state.openEst=-1;render()},
  toggleSec:el=>{const k=el.dataset.k;const s=el.closest('.osec');s.classList.toggle('open');s.classList.contains('open')?state.openSecs.add(k):state.openSecs.delete(k)},
  rate:el=>{const n=+el.dataset.val;state.draft.rating=state.draft.rating===n?0:n;render()},
  addTag:el=>{state.draft[el.dataset.k].push(el.dataset.val);render()},
@@ -785,14 +785,14 @@ const A={
   const isNew=state.params.mode==='new';if(isNew){d.createdAt=Date.now();venues.push(d);try{localStorage.removeItem(KEY+'-draft')}catch(e){}}else{venues[venues.findIndex(v=>v.id===d.id)]=d}
   persist(d);state.stack.pop();state.screen='detail';state.params={id:d.id};if(!isNew){}else state.stack.push({screen:'home',params:{}});scrollMem[skey()]=0;render();toast(isNew?'업체를 추가했어요':'수정 내용을 저장했어요')},
  pickDate:el=>{const cur=getP(state,el.dataset.path);const base=cur||(el.dataset.path.includes('weddingDate')?'2027-05-01':todayStr);state.picker={path:el.dataset.path,label:el.dataset.label,sel:cur||'',month:base.slice(0,7)};render()},
- pkSel:el=>{state.picker.sel=el.dataset.date;render()},
+ pkSel:el=>{state.picker.sel=el.dataset.date;A.pkOk()},
  pkMonth:el=>{const [y,m]=state.picker.month.split('-').map(Number);const d=new Date(y,m-1+(+el.dataset.d),1);state.picker.month=`${d.getFullYear()}-${pad2(d.getMonth()+1)}`;render()},
  pkClose:(el,e)=>{if(!el.dataset.force&&e.target!==el)return;state.picker=null;render()},
  pkOk:()=>{const p=state.picker;if(p.after==='reserve'){if(!p.sel){toast('상담 날짜를 골라주세요');return}const v=byId(p.vid);v.consult.date=p.sel;v.status='reserved';persist(v);state.picker=null;render();toast('상담예약으로 바꿨어요. 시간은 연필 아이콘을 눌러 넣어주세요');return}
   if(p.sel)setP(state,p.path,p.sel);state.picker=null;render()},
  pickMonth:el=>{const cur=getP(state,el.dataset.path);state.picker={mode:'month',path:el.dataset.path,label:el.dataset.label,sel:cur||'',year:+(cur||'2027-05').slice(0,4)};render()},
  pkYear:el=>{state.picker.year+=+el.dataset.d;render()},
- pkMonthSel:el=>{state.picker.sel=el.dataset.v;render()},
+ pkMonthSel:el=>{state.picker.sel=el.dataset.v;A.pkOk()},
  reserveNow:()=>{state.picker={path:'_reserve',label:'상담 날짜',sel:'',month:todayStr.slice(0,7),after:'reserve',vid:state.params.id};render()},
  optToggle:el=>{const o=state.draft.options[+el.dataset.i];const k=el.dataset.k;o[k]=!o[k];if(k==='incl'&&o.incl)o.on=true;render()},
  optAdd:()=>{state.draft.options.push({id:uid(),name:'',on:true,price:'',incl:false,custom:true});render();const ins=document.querySelectorAll('.ol-name input');if(ins.length)ins[ins.length-1].focus()},
