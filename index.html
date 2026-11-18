@@ -298,7 +298,7 @@ h3{font-size:15px;font-weight:700}
 .cbx.on{background:var(--rose);border-color:var(--rose)}.cbx.on svg{opacity:1}
 .ol-add{display:flex;align-items:center;gap:6px;width:100%;padding:12px;border-top:1px solid var(--line);font-size:12px;font-weight:500;color:var(--rose)}.ol-add svg{width:14px;height:14px}
 .nav .nav-add{display:grid;place-items:center}.nav-add span{width:46px;height:46px;border-radius:50%;background:var(--rose);color:#fff;display:grid;place-items:center;box-shadow:0 4px 10px rgba(168,92,102,.35)}.nav .nav-add svg{width:22px;height:22px}
-.est-sum{display:flex;flex-direction:column;gap:2px;background:var(--bg);border-radius:10px;padding:10px 12px}.es-top{display:flex;align-items:center;gap:8px}.es-t{flex:1;white-space:nowrap}.est-sum .blue-t{white-space:nowrap}.es-bk{font-size:10px;color:var(--gray);padding-left:46px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.est-sum b{font-size:13px}.qno.blue{background:#5B7BA8}.blue-t{color:#5B7BA8;font-size:14px!important}
+.est-sum{display:flex;flex-direction:column;gap:2px;background:var(--bg);border-radius:10px;padding:10px 12px}.es-top{display:flex;align-items:center;gap:8px}.es-t{flex:1;white-space:nowrap}.est-sum .blue-t{white-space:nowrap}.es-bk{font-size:10px;color:var(--gray);padding-left:46px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.est-sum b{font-size:13px}.qno.blue{background:#5B7BA8}.qno.n{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px}.blue-t{color:#5B7BA8;font-size:14px!important}
 .q-empty{background:var(--bg);border-radius:12px;padding:16px 12px;text-align:center;display:flex;flex-direction:column;gap:4px}.q-empty b{font-size:13px;color:var(--gray);font-weight:500}.q-empty span{font-size:11px;color:var(--light)}
 .guide.rose{background:var(--rose-bg);color:var(--rose)}
 .later{border:1px dashed #D9CFC8;background:#fff;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}.later b{font-size:13px;color:var(--gray)}.later span{font-size:12px;color:var(--light);line-height:1.5}
@@ -380,7 +380,7 @@ const ests=v=>(v.estimates||[]).filter(e=>e.date||e.month||e.time||has(e.meal)||
 const estTotal=e=>{const m=num(e.meal),g=num(e.guests),r=num(e.rental);return (m&&g?m*g:0)+r};
 const estBk=e=>`(${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'}) + ${has(e.rental)?(num(e.rental)?man(e.rental):'0원'):'-'}`;
 const cPromo=v=>(v.common&&v.common.promo)||((v.quotes||[]).find(q=>q.promo)||{}).promo||'';
-const estSumHTML=es=>es.map((e,i)=>`<div class="est-sum"><div class="es-top"><span class="qno blue">견적 ${i+1}</span><b class="es-t">${estLabel(e)}</b><b class="blue-t">${estTotal(e)?'약 '+manR(estTotal(e)):'-'}</b></div><div class="es-bk">${estBk(e)}</div></div>`).join('');
+const estSumHTML=es=>es.map((e,i)=>`<div class="est-sum"><div class="es-top"><span class="qno n blue">${i+1}</span><b class="es-t">${estLabel(e)}</b><b class="blue-t">${estTotal(e)?'약 '+manR(estTotal(e)):'-'}</b></div><div class="es-bk">${estBk(e)}</div></div>`).join('');
 const fmtYM=x=>x?`${+x.slice(0,4)}년 ${+x.slice(5,7)}월`:'';
 const isCand=v=>v.status==='candidate';
 const SUG_CONS=['천장 낮음','주차 협소','식사 아쉬움','대기실 좁음','엘리베이터 대기'];
@@ -586,11 +586,11 @@ function optionsEditor(){const list=state.draft.options;
   <span class="ol-inc"><button type="button" class="cbx ${o.incl?'on':''}" data-act="optToggle" data-i="${i}" data-k="incl" aria-label="대관료 포함">${I.check}</button></span></div>`).join('')}
  <button type="button" class="ol-add" data-act="optAdd">${I.plus}선택사항 추가 (예: 폐백, 원판 촬영)</button></div>
  <div class="helper" style="margin-top:0">대관료에 포함되지 않은 항목의 요금은 견적의 예상 총 금액에 합산돼요</div></div>`}
-function estBoxesHTML(){const d=state.draft;return d.estimates.map((e,i)=>state.openEst===i?`<div class="qbox"><div class="qbox-hd"><div class="row"><span class="qno">견적 ${i+1}</span><b>${estLabel(e)}</b></div>${d.estimates.length>1?`<button type="button" class="rm" data-act="rmEst" data-i="${i}">삭제</button>`:''}</div>
+function estBoxesHTML(){const d=state.draft;return d.estimates.map((e,i)=>state.openEst===i?`<div class="qbox"><div class="qbox-hd"><div class="row"><span class="qno n">${i+1}</span><b>${estLabel(e)}</b></div>${d.estimates.length>1?`<button type="button" class="rm" data-act="rmEst" data-i="${i}">삭제</button>`:''}</div>
    ${frow(fld('견적 날짜',`estimates.${i}.date`,{type:'date',req:1}),fld('예식 시간',`estimates.${i}.time`,{type:'time',req:1}))}
    ${frow(fld('식대 (1인)',`estimates.${i}.meal`,{type:'num',suf:'원'}),fld('예상 보증인원',`estimates.${i}.guests`,{type:'num',suf:'명'}))}${fld('대관료',`estimates.${i}.rental`,{type:'num',suf:'원'})}
    <div class="est-total" data-calc="candEst" data-i="${i}">${candEstHTML(i)}</div></div>`
-   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno">견적 ${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e)}</div></div><b class="rose">${estTotal(e)?manR(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
+   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno n">${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e)}</div></div><b class="rose">${estTotal(e)?manR(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
 function checkEditor(){const list=state.draft.checklist;return `<div class="fsec"><header><h2>상담 때 물어볼 것</h2><p>상담 갈 때 체크리스트로 보여드려요</p></header><div class="tagbox">${list.map((c,i)=>`<span class="tag" style="background:var(--bg);color:var(--dark)">${esc(c.text)}<button type="button" data-act="rmCheck" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-checkinput placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
  <div class="sugg">${SUG_ASK.filter(x=>!list.some(c=>c.text===x)).map(x=>`<button type="button" data-act="addCheck" data-val="${x}">+ ${x}</button>`).join('')}</div></div>`}
 function tagEditor(k,sugg){const cls=k==='pros'?'pro':'con';const list=state.draft[k];
@@ -790,6 +790,7 @@ const A={
  saveVenue:()=>{const d=state.draft;if(!d.name.trim()){toast('업체명을 입력해주세요');const n=$('#nameIn');if(n){n.focus();n.closest('.box').classList.add('err')}return}
   const bad=[d.consult.time,...d.quotes.map(q=>q.weddingTime),...(d.estimates||[]).map(e=>e.time)].find(t=>t&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(t));if(bad){toast(`시간 "${bad}"을 HH:MM 형식으로 고쳐주세요`);return}
   if(d.status==='candidate'||d.status==='reserved'){const ei=(d.estimates||[]).findIndex(e=>(e.date||e.time||has(e.meal)||has(e.guests)||has(e.rental))&&(!e.date||!e.time));if(ei>=0){state.openEst=ei;render();toast(`견적 ${ei+1}의 날짜와 시간을 입력해주세요`);return}}
+  if(d.estimates&&d.estimates.length>1){const key=e=>(e.date||(e.month?e.month+'-01':'9999-99-99'))+' '+(e.time||'99:99');d.estimates=d.estimates.map((e,i)=>[e,i]).sort((a,b)=>key(a[0])<key(b[0])?-1:key(a[0])>key(b[0])?1:a[1]-b[1]).map(x=>x[0])}
   if(d._memo&&d._memo.trim())d.memos.push({id:uid(),date:todayStr,text:d._memo.trim()});delete d._memo;
   const isNew=state.params.mode==='new';if(isNew){d.createdAt=Date.now();venues.push(d);try{localStorage.removeItem(KEY+'-draft')}catch(e){}}else{venues[venues.findIndex(v=>v.id===d.id)]=d}
   persist(d);state.stack.pop();state.screen='detail';state.params={id:d.id};if(!isNew){}else state.stack.push({screen:'home',params:{}});scrollMem[skey()]=0;render();toast(isNew?'업체를 추가했어요':'수정 내용을 저장했어요')},
