@@ -275,7 +275,9 @@ h3{font-size:15px;font-weight:700}
 .mcard .vn{font-size:12px;font-weight:700;color:var(--rose);background:var(--rose-t);padding:2px 8px;border-radius:99px}
 .linkbtn{font-size:13px;color:var(--light);text-decoration:underline;padding:24px 0;display:block;margin:0 auto}
 .lock{padding:56px 24px;display:flex;flex-direction:column;gap:16px}.lock p{font-size:14px;color:var(--gray);line-height:1.6}.lock p b{color:var(--dark)}.lock .note{font-size:12px;color:var(--light)}
-.pc-wrap{height:min(470px,62vh);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.addr-link{display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:500;color:var(--rose);text-decoration:none;padding:4px 0}.addr-link svg{width:14px;height:14px}
+.addr-manual{display:flex;gap:8px}.addr-manual input{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:13px}.addr-manual button{height:40px;padding:0 14px;border-radius:10px;background:var(--dark,#333);color:#fff;font-size:13px;font-weight:600}
+.pc-wrap{height:min(400px,52vh);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .optlist{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .ol-hd{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#FBF8F6;font-size:11px;font-weight:500;color:var(--light)}
 .ol-row{display:flex;align-items:center;gap:10px;padding:0 12px;height:48px;border-top:1px solid var(--line)}
@@ -705,7 +707,7 @@ SCREENS.viewer=()=>{const v=byId(state.params.id);const i=state.params.i;const p
 
 /* ===================== SHEETS ===================== */
 function sheetHTML(){const s=state.sheet;if(!s)return '';let body='';
- if(s.type==='addr')body=`<div class="sheet-hd"><h3>위치 검색</h3><button data-act="closeSheet" data-force="1">${I.x}</button></div><div id="pcWrap" class="pc-wrap"><div class="empty-box">주소 검색을 불러오는 중이에요…</div></div><p class="note">카카오 주소 검색 · 건물명, 도로명, 지번으로 찾을 수 있어요</p>`;
+ if(s.type==='addr')body=`<div class="sheet-hd"><h3>위치 검색</h3><button data-act="closeSheet" data-force="1">${I.x}</button></div><div class="guide">${I.info}<span>주소 검색이라 <b>웨딩홀 이름으로는 찾을 수 없어요.</b> 도로명·지번·건물명으로 검색해주세요.</span></div><div id="pcWrap" class="pc-wrap"><div class="empty-box">주소 검색을 불러오는 중이에요…</div></div>${(state.draft&&state.draft.name.trim())?`<a class="addr-link" href="https://map.kakao.com/link/search/${encodeURIComponent(state.draft.name.trim())}" target="_blank" rel="noopener">${I.pin}카카오맵에서 '${esc(state.draft.name.trim())}' 주소 확인하기</a>`:''}<div class="addr-manual"><input id="addrManual" placeholder="주소를 직접 입력할 수도 있어요" value="${esc(state.draft?state.draft.location:'')}" enterkeyhint="done"><button data-act="addrManual">입력</button></div>`;
  if(s.type==='more')body=`<button class="menu-item" data-act="edit">${I.edit}업체 정보 수정</button><button class="menu-item" data-act="photos">${I.image}사진 보기</button><button class="menu-item danger" data-act="askDelVenue">${I.trash}업체 삭제</button>`;
  if(s.type==='confirm')body=`<div class="sheet-hd"><h3>${s.title}</h3></div><p style="font-size:14px;color:var(--gray);line-height:1.5">${s.desc}</p><div class="frow"><button class="btn-sub" data-act="closeSheet">취소</button><button class="btn-primary" style="background:#C2554A" data-act="${s.ok}">${s.okLabel}</button></div>`;
  if(s.type==='cmpAdd'){const opts=venues.filter(v=>!state.compareIds.includes(v.id));body=`<div class="sheet-hd"><h3>비교할 업체 추가</h3><button data-act="closeSheet">${I.x}</button></div>${opts.map(v=>`<button class="menu-item" data-act="cmpPick" data-id="${v.id}">${badge(v.status)}<span>${esc(v.name)}</span></button>`).join('')||'<p class="summary none">추가할 업체가 없어요</p>'}`}
@@ -825,7 +827,8 @@ const A={
  askDelPhoto:()=>{state.sheet={type:'confirm',title:'사진을 삭제할까요?',desc:'삭제한 사진은 되돌릴 수 없어요.',ok:'delPhoto',okLabel:'삭제'};render()},
  delPhoto:()=>{const v=byId(state.params.id);const [gone]=v.photos.splice(state.params.i,1);if(gone&&gone.sb&&SB)SB.from('photos').delete().eq('id',gone.id).then(()=>{});persist(v);state.sheet=null;if(!v.photos.length){back()}else{state.params.i=Math.min(state.params.i,v.photos.length-1);render()}},
  addPhoto:()=>$('#fileIn').click(),
- openAddr:()=>{state.sheet={type:'addr'};render()}
+ openAddr:()=>{state.sheet={type:'addr'};render()},
+ addrManual:()=>{const i=$('#addrManual');const t=i?i.value.trim():'';if(!t){toast('주소를 입력해주세요');return}state.draft.location=t;state.sheet=null;render();toast('위치를 입력했어요')}
 };
 const appEl=$('#app');
 appEl.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||!appEl.contains(el))return;const f=A[el.dataset.act];if(f){f(el,e)}});
@@ -837,6 +840,7 @@ appEl.addEventListener('input',e=>{const t=e.target;
  if(t.hasAttribute('data-search')){state.search=t.value;$('#venueList').innerHTML=listHTML()}
  if(t.hasAttribute('data-photomemo')){const v=byId(state.params.id);v.photos[state.params.i].memo=t.value;persist(v,700)}});
 appEl.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||e.isComposing)return;
+ if(t.id==='addrManual'){e.preventDefault();A.addrManual();return}
  if(t.dataset.taginput){e.preventDefault();const k=t.dataset.taginput;const val=t.value.trim();if(val&&!state.draft[k].includes(val))state.draft[k].push(val);render();const n=$(`[data-taginput="${k}"]`);if(n)n.focus()}
  if(t.id==='quickMemo'){e.preventDefault();A.addMemo()}
  if(t.hasAttribute('data-checkinput')){e.preventDefault();const val=t.value.trim();if(val&&!state.draft.checklist.some(c=>c.text===val))state.draft.checklist.push({id:uid(),text:val,done:false});render();const n=$('[data-checkinput]');if(n)n.focus()}
@@ -864,7 +868,7 @@ function mountPostcode(){const wrap=$('#pcWrap');if(!wrap)return;
   const PC=PostcodeCls();if(!PC)throw new Error('postcode');new PC({width:'100%',height:'100%',
    oncomplete:data=>{const addr=data.roadAddress||data.jibunAddress||data.address;const b=data.buildingName;
     state.draft.location=addr+(b?` (${b})`:'');if(b&&!state.draft.name.trim())state.draft.name=b;state.sheet=null;render();toast('위치를 입력했어요')}
-  }).embed(wrap,{q:(state.draft.name||'').trim(),autoClose:false})})
+  }).embed(wrap,{q:(state.draft.location||'').replace(/\s*\(.*\)$/,'').trim(),autoClose:false})})
  .catch(()=>{wrap.innerHTML='<div class="empty-box">주소 검색을 불러오지 못했어요<br>인터넷 연결을 확인해주세요</div>'})}
 /* 공유 암호 화면 */
 SCREENS.lock=()=>`<div class="scroll">${statusBar()}<div class="lock"><div class="eyebrow">우리의 웨딩홀 투어</div><h1>웨딩홀 노트</h1>
