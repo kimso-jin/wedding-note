@@ -440,10 +440,11 @@ const skey=()=>state.screen+':'+(state.params.id||'')+':'+(state.params.mode||''
 function go(screen,params={}){saveScroll();state.stack.push({screen:state.screen,params:state.params});state.screen=screen;state.params=params;scrollMem[skey()]=0;render()}
 function back(){saveScroll();const p=state.stack.pop();if(!p){state.screen='home';state.params={}}else{state.screen=p.screen;state.params=p.params}state.sheet=null;render()}
 function tab(screen){state.stack=[];state.screen=screen;state.params={};state.sheet=null;render()}
-function saveScroll(){const sc=$('#app .scroll');if(sc)scrollMem[skey()]=sc.scrollTop}
+let renderedKey=null;
+function saveScroll(){const sc=$('#app .scroll');if(sc&&renderedKey)scrollMem[renderedKey]=sc.scrollTop}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
 function render(){saveScroll();const app=$('#app');app.innerHTML=(MODE==='needKey'?SCREENS.lock:(SCREENS[state.screen]||SCREENS.home))()+sheetHTML()+pickerHTML();
- const sc=$('#app .scroll');if(sc)sc.scrollTop=scrollMem[skey()]||0;
+ renderedKey=skey();const sc=$('#app .scroll');if(sc)sc.scrollTop=scrollMem[renderedKey]||0;
  $('#hind').className='hind'+(state.screen==='viewer'?' light':'');
  afterRender()}
 function afterRender(){if(state.sheet&&state.sheet.type==='addr')mountPostcode();const car=$('[data-carousel]');if(car){car.addEventListener('scroll',()=>{const cards=[...car.children];const i=Math.round(car.scrollLeft/(cards[0].offsetWidth+10));document.querySelectorAll('.pager i').forEach((d,k)=>d.classList.toggle('on',k===i))},{passive:true})}}
