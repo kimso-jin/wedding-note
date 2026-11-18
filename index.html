@@ -307,7 +307,7 @@ h3{font-size:15px;font-weight:700}
 .est-tag{font-size:11px;font-weight:700;color:#5B7BA8;background:#E8EEF6;border-radius:6px;padding:1px 7px}
 .chk{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:13px;width:100%;text-align:left}.chk i{width:20px;height:20px;border-radius:6px;border:1.5px solid #D9CFC8;display:grid;place-items:center;flex:none;color:#fff}.chk i svg{width:13px;height:13px}.chk.on i{background:var(--rose);border-color:var(--rose)}.chk.on span{color:var(--light);text-decoration:line-through}
 .thumb-empty{border:1px dashed #D9CFC8;background:#fff;box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:500;color:var(--light)}.thumb-empty svg{width:22px;height:22px}
-.est-total{display:flex;justify-content:space-between;align-items:center;background:var(--rose-bg);border-radius:10px;padding:12px 14px}
+.est-total{display:flex;justify-content:space-between;align-items:center;background:#EEF2F8;border-radius:10px;padding:12px 14px}
 .est-row{display:flex;align-items:center;gap:8px;width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:13px}.est-row svg{width:16px;height:16px;color:#C9C0BA}
 .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mcell{height:44px;border-radius:10px;background:var(--bg);font-size:14px}.mcell.today{color:var(--rose);font-weight:700}.mcell.sel{background:var(--rose);color:#fff;font-weight:700}
 .toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(43,37,34,.92);color:#fff;font-size:13px;padding:10px 16px;border-radius:99px;z-index:80;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -576,7 +576,7 @@ const frow=(...a)=>`<div class="frow">${a.join('')}</div>`;
 const help=t=>`<div class="helper">${t}</div>`;
 function progOf(key){const f=OPT_SECS[key][2];return [f.filter(p=>has(D(p))).length,f.length]}
 function estHTML(i){const q=state.draft.quotes[i];const t=calcQ(state.draft,q);return `<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>대관료</span><span>${won(t.rental)||'0원'}</span></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div><div class="r"><span>선택사항 (대관료 미포함)</span><span>${won(t.opt)||'0원'}</span></div><div class="r"><span>부가세 (공통 조건 '별도' 시 10%)</span><span>${won(t.vat)||'0원'}</span></div>`}
-function candEstHTML(i){const e=state.draft.estimates[i];const t=estTotal(e);return `<div><b style="font-size:13px">예상 총액</b><div class="note">${estBk(e)}</div></div><b class="rose" style="font-size:17px;white-space:nowrap">${t?manR(t):'0원'}</b>`}
+function candEstHTML(i){const e=state.draft.estimates[i];const t=estTotal(e);return `<div><b style="font-size:13px">예상 총액</b><div class="note">${estBk(e)}</div></div><b class="blue-t" style="font-size:17px;white-space:nowrap">${t?manR(t):'0원'}</b>`}
 function optionsEditor(){const list=state.draft.options;
  return `<div class="fld"><div class="row between"><span class="lbl">선택사항</span><span class="note">이용할 항목에 체크하고 요금을 적어주세요</span></div>
  <div class="optlist"><div class="ol-hd"><span style="width:20px"></span><span style="flex:1">항목</span><span style="width:108px;text-align:center">요금</span><span style="width:52px;text-align:center;line-height:1.2">대관료<br>포함</span></div>
@@ -586,11 +586,11 @@ function optionsEditor(){const list=state.draft.options;
   <span class="ol-inc"><button type="button" class="cbx ${o.incl?'on':''}" data-act="optToggle" data-i="${i}" data-k="incl" aria-label="대관료 포함">${I.check}</button></span></div>`).join('')}
  <button type="button" class="ol-add" data-act="optAdd">${I.plus}선택사항 추가 (예: 폐백, 원판 촬영)</button></div>
  <div class="helper" style="margin-top:0">대관료에 포함되지 않은 항목의 요금은 견적의 예상 총 금액에 합산돼요</div></div>`}
-function estBoxesHTML(){const d=state.draft;return d.estimates.map((e,i)=>state.openEst===i?`<div class="qbox"><div class="qbox-hd"><div class="row"><span class="qno n">${i+1}</span><b>${estLabel(e)}</b></div>${d.estimates.length>1?`<button type="button" class="rm" data-act="rmEst" data-i="${i}">삭제</button>`:''}</div>
+function estBoxesHTML(){const d=state.draft;return d.estimates.map((e,i)=>state.openEst===i?`<div class="qbox"><div class="qbox-hd"><div class="row"><span class="qno n blue">${i+1}</span><b>${estLabel(e)}</b></div>${d.estimates.length>1?`<button type="button" class="rm" data-act="rmEst" data-i="${i}">삭제</button>`:''}</div>
    ${frow(fld('견적 날짜',`estimates.${i}.date`,{type:'date',req:1}),fld('예식 시간',`estimates.${i}.time`,{type:'time',req:1}))}
    ${frow(fld('식대 (1인)',`estimates.${i}.meal`,{type:'num',suf:'원'}),fld('예상 보증인원',`estimates.${i}.guests`,{type:'num',suf:'명'}))}${fld('대관료',`estimates.${i}.rental`,{type:'num',suf:'원'})}
    <div class="est-total" data-calc="candEst" data-i="${i}">${candEstHTML(i)}</div></div>`
-   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno n">${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e)}</div></div><b class="rose">${estTotal(e)?manR(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
+   :`<button type="button" class="est-row" data-act="openEst" data-i="${i}"><span class="qno n blue">${i+1}</span><div style="flex:1;text-align:left"><b>${estLabel(e)}</b><div class="note">${estBk(e)}</div></div><b class="blue-t">${estTotal(e)?manR(estTotal(e)):'-'}</b>${I.chevR}</button>`).join('')}
 function checkEditor(){const list=state.draft.checklist;return `<div class="fsec"><header><h2>상담 때 물어볼 것</h2><p>상담 갈 때 체크리스트로 보여드려요</p></header><div class="tagbox">${list.map((c,i)=>`<span class="tag" style="background:var(--bg);color:var(--dark)">${esc(c.text)}<button type="button" data-act="rmCheck" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-checkinput placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
  <div class="sugg">${SUG_ASK.filter(x=>!list.some(c=>c.text===x)).map(x=>`<button type="button" data-act="addCheck" data-val="${x}">+ ${x}</button>`).join('')}</div></div>`}
 function tagEditor(k,sugg){const cls=k==='pros'?'pro':'con';const list=state.draft[k];
