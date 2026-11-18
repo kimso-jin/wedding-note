@@ -102,6 +102,7 @@ h3{font-size:15px;font-weight:700}
 .card-hd .acts{display:flex;align-items:center;gap:12px}
 .toggle,.edit{display:flex;align-items:center;gap:2px;font-size:12px;font-weight:500;color:var(--gray)}
 .edit{color:var(--light)}
+.del-ic{color:var(--gray)}
 .inl .sections>*:not(.editing),.inl .d-head,.inl .act-row{opacity:.35;pointer-events:none}
 .inl~.memo-bar{display:none}
 .card.editing{gap:12px;box-shadow:0 0 0 1.5px #C9D5E6,0 2px 12px rgba(64,46,38,.05)}
@@ -555,7 +556,7 @@ function checklistCard(v){if(IE('check'))return editCard('check','상담 때 물
 function candDetail(v){const es=ests(v);const created=v.createdAt?new Date(v.createdAt):null;const days=created?Math.max(0,Math.round((TODAY-new Date(created.getFullYear(),created.getMonth(),created.getDate()))/864e5)):null;
  const memos=v.memos.slice().reverse();
  return `<div class="scroll ${state.inline?'inl':''}">${statusBar()}
- <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="뒤로">${I.chevL}</button><b>업체 상세</b><div class="row"><button class="icon-btn plain heart ${v.fav?'on':''}" data-act="fav" data-id="${v.id}">${I.heart}</button><button class="icon-btn plain" data-act="more">${I.more}</button></div></div>
+ <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="뒤로">${I.chevL}</button><b>업체 상세</b><div class="row"><button class="icon-btn plain heart ${v.fav?'on':''}" data-act="fav" data-id="${v.id}">${I.heart}</button><button class="icon-btn plain del-ic" data-act="askDelVenue" aria-label="업체 삭제">${I.trash}</button></div></div>
  ${IE('basic')?`<div class="px20 pb12">${editCard('basic','기본 정보')}</div>`:''}<div class="d-head ${IE('basic')?'hide':''}"><div class="d-info">${statusBtn(v)}<h1 class="nm">${esc(v.name)}${penBtn('basic')}</h1><div class="vsub" style="font-size:13px">${esc([v.hall,v.location].filter(Boolean).join(' · '))}</div><div class="note">${days!=null?`후보로 등록한 지 ${days}일 · `:''}아직 상담 전</div></div>
   ${v.photos.length?`<button class="thumb" data-act="photos" aria-label="사진 보기">${photoFill(v.photos[0])}<span class="cnt">${v.photos.length}</span></button>`:`<button class="thumb thumb-empty" data-act="photos">${I.image}<span>사진 추가</span></button>`}</div>
  <div class="frow px20 pb20 act-row"><button class="btn-primary" style="flex:1" data-act="reserveNow">${I.cal}상담 예약하기</button><a class="btn-outline" style="padding:0 16px" href="https://map.kakao.com/link/search/${encodeURIComponent(v.name||v.location||'')}" target="_blank" rel="noopener">${I.pin}카카오맵</a></div>
@@ -577,7 +578,7 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();if
   <div class="total"><div class="row between"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><small>대관료 ${won(t.rental)||'0원'} + 총 식대 ${won(t.totalMeal)||'0원'}${t.opt?` + 선택사항 ${won(t.opt)}`:''}${cm.vat==='별도'?` + 부가세 ${won(t.vat)}`:cm.vat==='포함'?' · 부가세 포함':''}</small></div></div>`}).join('');
  const memos=v.memos.slice().reverse();
  return `<div class="scroll ${state.inline?'inl':''}">${statusBar()}
- <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="뒤로">${I.chevL}</button><b>업체 상세</b><div class="row"><button class="icon-btn plain heart ${v.fav?'on':''}" data-act="fav" data-id="${v.id}">${I.heart}</button><button class="icon-btn plain" data-act="more">${I.more}</button></div></div>
+ <div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="뒤로">${I.chevL}</button><b>업체 상세</b><div class="row"><button class="icon-btn plain heart ${v.fav?'on':''}" data-act="fav" data-id="${v.id}">${I.heart}</button><button class="icon-btn plain del-ic" data-act="askDelVenue" aria-label="업체 삭제">${I.trash}</button></div></div>
  ${IE('basic')?`<div class="px20 pb12">${editCard('basic','기본 정보')}</div>`:''}<div class="d-head ${IE('basic')?'hide':''}"><div class="d-info">${statusBtn(v)}<h1 class="nm">${esc(v.name)}${penBtn('basic')}</h1><div class="vsub" style="font-size:13px">${esc([v.hall,v.location].filter(Boolean).join(' · '))}</div>${v.status==='reserved'?(c.date?`<div class="note" style="color:var(--rose);font-weight:500">상담까지 ${dday(c.date)} · ${fmtKor(c.date)} ${fmtTime(c.time)}</div>`:'<div class="note">상담 날짜를 정해주세요</div>'):rateStars(v)}</div>
   ${v.photos.length?`<button class="thumb" data-act="photos" aria-label="사진 보기">${photoFill(v.photos[0])}<span class="cnt">${v.photos.length}</span></button>`:`<button class="thumb thumb-empty" data-act="photos">${I.image}<span>사진 추가</span></button>`}</div>
  <div class="px20 pb20 act-row"><a class="btn-outline" href="https://map.kakao.com/link/search/${encodeURIComponent(v.name||v.location||'')}" target="_blank" rel="noopener">${I.pin}카카오맵 길찾기</a></div>
