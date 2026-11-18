@@ -133,6 +133,25 @@ h3{font-size:15px;font-weight:700}
 /* form */
 .form{display:flex;flex-direction:column;gap:26px;padding:12px 20px 28px}
 .fsec{display:flex;flex-direction:column;gap:12px}
+.form{gap:12px!important}.form>.fsec:not(.plain){background:#fff;border-radius:16px;padding:18px 16px 16px;box-shadow:0 2px 12px rgba(64,46,38,.05)}
+.form>.fsec.plain{padding:6px 0 0}
+.fsec .qbox{background:var(--bg);border:none;border-radius:12px;padding:12px}.fsec .qbox .box{padding:0 10px;gap:6px}.fsec .qbox .inp{font-size:13px}
+.fsec .est-row{background:var(--bg);border:none}
+.fsec .rating{border:none;background:var(--bg)}
+.status-tabs{margin-bottom:2px}
+.hero-in{display:flex;flex-direction:column;gap:2px;padding:4px 4px 10px}
+.hero-in .hi{display:flex;align-items:center;gap:6px;border-bottom:1px solid #E3DBD5;padding:8px 0}
+.hero-in .hi .inp{flex:1;min-width:0;border:none;background:none;outline:none;font:inherit;font-size:15px;font-weight:500;color:var(--dark);padding:0}
+.hero-in .hi .inp::placeholder{color:var(--ph)}
+.hero-in .hi.name{border-bottom-width:1.5px;padding:4px 0 8px}
+.hero-in .hi.name .inp{font-size:22px;font-weight:700}
+.hero-in .hi.err{border-bottom-color:#C2554A}
+.hero-in .grow{display:inline-grid;max-width:calc(100% - 16px)}.hero-in .grow::after{content:attr(data-v) ' ';visibility:hidden;white-space:pre;grid-area:1/1;font-size:22px;font-weight:700;overflow:hidden}.hero-in .grow .inp{grid-area:1/1;width:100%;min-width:0;flex:none}
+.hero-in .hi.name i{font-style:normal;color:var(--rose);font-weight:700}
+.hero-in .hi:focus-within{border-bottom-color:var(--rose)}
+.hero-in .loc{width:100%;text-align:left;font-size:14px;color:#8A817C}
+.hero-in .loc span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hero-in .loc .ph{color:var(--ph)}
+.hero-in .loc svg{width:18px;height:18px;color:var(--light);flex-shrink:0}
 .fsec>header h2{font-size:15px}.fsec>header p{font-size:11px;color:var(--light);margin-top:2px}
 .fld{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
 .lbl{font-size:12px;font-weight:500;color:var(--gray)}.lbl i{color:var(--rose);font-style:normal;font-weight:700;margin-left:2px}
@@ -464,7 +483,7 @@ function afterRender(){if(state.sheet&&state.sheet.type==='addr')mountPostcode()
 const badge=s=>{const st=STATUS[s]||STATUS.reserved;return `<span class="badge" style="background:${st.bg};color:${st.fg}">${st.label}</span>`};
 const nav=cur=>{const t=[['home','홈',I.home],['schedule','일정',I.cal],['compare','비교',I.compare],['memo','메모',I.note]].map(([k,l,ic])=>`<button class="${cur===k?'on':''}" data-act="tab" data-to="${k}">${ic}${l}</button>`);
  t.splice(2,0,`<button class="nav-add" data-act="newVenue" aria-label="업체 추가"><span>${I.plus}</span></button>`);return `<nav class="nav">${t.join('')}</nav>`};
-const starsHTML=(r,size)=>`<div class="stars">${[1,2,3,4,5].map(i=>I.star(i<=r?'#D9A441':'#DDD5CF')).join('')}${r?`<b>${(+r).toFixed(1)}</b>`:''}<small>${r?'우리 점수':'아직 점수 없음'}</small></div>`;
+const starsHTML=(r,size)=>`<div class="stars">${[1,2,3,4,5].map(i=>I.star(i<=r?'#D9A441':'#DDD5CF')).join('')}${r?`<b>${(+r).toFixed(1)}</b>`:''}${r?'':'<small>아직 점수 없음</small>'}</div>`;
 const photoFill=p=>p?(photoSrc(p)?`<div class="ph-fill"><img src="${esc(photoSrc(p))}" alt="" loading="lazy"></div>`:p.cat==='견적서'?`<div class="ph-fill doc">${I.doc}</div>`:`<div class="ph-fill" style="background:linear-gradient(135deg,${(p.grad||GRADS['기타'][0])[0]},${(p.grad||GRADS['기타'][0])[1]})">${I.image}</div>`):`<div class="ph-fill" style="background:linear-gradient(135deg,#EDE6E0,#CFC3BA)">${I.image}</div>`;
 const kv=(l,v,o={})=>`<div class="kv"><span>${l}</span><b class="${has(v)?(o.strong?'strong':''):'none'}">${has(v)?esc(v):'-'}</b></div>`;
 const para=(l,v,color)=>`<div class="para"><span>${l}</span><b style="${color&&has(v)?`color:${color}`:''}">${has(v)?esc(v):'-'}</b></div>`;
@@ -564,7 +583,7 @@ const OPT_SECS={meal:['식사','시식이 가능하면 인원도 함께 적어�
  payment:['계약 · 결제 조건','계약 전에 꼭 확인해야 할 조건이에요',['payment.deposit','payment.middle','payment.balance','payment.refund']]};
 const D=p=>getP(state.draft,p);
 function fld(label,path,o={}){const val=D(path);const P='draft.'+path;let input;
- if(o.type==='date')input=`<button type="button" class="inp" data-act="pickDate" data-path="${P}" data-label="${label}">${val?fmtFull(val):`<span class="ph">YYYY.MM.DD</span>`}</button>${I.cal}`;
+ if(o.type==='date')input=`<button type="button" class="inp" data-act="pickDate" data-path="${P}" data-label="${label}">${val?fmtFull(val).replace(' (','('):`<span class="ph">YYYY.MM.DD</span>`}</button>${I.cal}`;
  else if(o.type==='time')input=`<input class="inp" data-path="${P}" data-time inputmode="numeric" maxlength="5" placeholder="HH:MM" value="${esc(val)}">${I.clock}`;
  else if(o.type==='num')input=`<input class="inp" data-path="${P}" data-num inputmode="numeric" placeholder="${o.ph||'0'}" value="${fmtNum(val)}">${o.suf?`<span class="suf">${o.suf}</span>`:''}`;
  else if(o.type==='addr')input=`<button type="button" class="inp" data-act="openAddr" data-path="${P}">${val?esc(val):`<span class="ph">${esc(o.ph||'')}</span>`}</button>${I.search}`;
@@ -597,8 +616,8 @@ function tagEditor(k,sugg){const cls=k==='pros'?'pro':'con';const list=state.dra
  return `<div class="fld"><span class="lbl">${k==='pros'?'좋았던 점':'아쉬운 점'}</span><div class="tagbox">${list.map((t,i)=>`<span class="tag ${cls}">${esc(t)}<button type="button" data-act="rmTag" data-k="${k}" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-taginput="${k}" placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
  <div class="sugg">${sugg.filter(s=>!list.includes(s)).map(s=>`<button type="button" data-act="addTag" data-k="${k}" data-val="${s}">+ ${s}</button>`).join('')}</div></div>`}
 SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';const cand=d.status==='candidate';
- const statusSec=`<div class="fsec"><header><h2>진행 상태</h2></header><div class="seg">${Object.entries(STATUS).map(([k,s])=>`<button type="button" class="${d.status===k?'on':''}" data-act="setStatus" data-k="${k}">${s.label}</button>`).join('')}</div>${cand?`<div class="guide">${I.info}<span>상담후보는 꼭 필요한 것만 간단히 받아요. 상담 날짜가 잡히면 상담예약으로 바꿔주세요.</span></div>`:d.status==='done'?`<div class="guide rose">${I.info}<span>상담에서 받은 실제 견적과 조건을 자세히 적어두면 다른 업체와 정확하게 비교할 수 있어요.</span></div>`:d.status==='reserved'?`<div class="guide rose">${I.info}<span>상담 날짜를 넣으면 메인에서 D-day로 알려드려요. 상담 전에 알아본 금액은 예상 견적에 적어두면 실제 견적과 비교할 수 있어요.</span></div>`:''}</div>`;
- const basicSec=`<div class="fsec"><header><h2>기본 정보</h2></header>${fld('업체명','name',{req:1,ph:'예) 더채플앳청담',id:'nameIn'})}${fld('홀 이름','hall',{ph:'예) 커티지홀'})}${fld('위치','location',{type:'addr',ph:'건물명, 도로명으로 검색'})}</div>`;
+ const statusSec=`<div class="seg status-tabs">${Object.entries(STATUS).map(([k,s])=>`<button type="button" class="${d.status===k?'on':''}" data-act="setStatus" data-k="${k}">${s.label}</button>`).join('')}</div>`;
+ const basicSec=`<div class="hero-in"><div class="hi name"><span class="grow" data-v="${esc(d.name||'업체명')}"><input class="inp" size="1" id="nameIn" data-path="draft.name" placeholder="업체명" value="${esc(d.name)}"></span><i>*</i></div><div class="hi"><input class="inp" data-path="draft.hall" placeholder="홀 이름 (예: 그랜드홀)" value="${esc(d.hall)}"></div><button type="button" class="hi loc" data-act="openAddr" data-path="draft.location">${d.location?`<span>${esc(d.location)}</span>`:`<span class="ph">위치 검색 (도로명, 건물명)</span>`}${I.search}</button></div>`;
  const memoSec=isNew?`<div class="fsec"><header><h2>메모</h2></header><textarea class="ta" data-path="draft._memo" placeholder="${cand?'예) 인스타 후기 보고 등록. 채광 좋아 보임':'상담 때 물어볼 것, 둘러보며 느낀 점을 자유롭게 적어두세요'}" maxlength="500">${esc(d._memo||'')}</textarea></div>`:'';
  const delLink=!isNew?`<button type="button" class="del-link" style="margin-top:-8px" data-act="askDelVenue">${I.trash}이 업체 삭제</button>`:'';
  const topnav=`<div class="topnav"><button class="icon-btn plain" data-act="back" aria-label="닫기">${I.x}</button><b>${isNew?'업체 추가':'업체 정보 수정'}</b><button style="font-size:12px;color:var(--gray);font-weight:500;width:56px" data-act="tempSave">${isNew?'임시저장':''}</button></div>`;
@@ -635,7 +654,7 @@ SCREENS.form=()=>{const d=state.draft;const isNew=state.params.mode==='new';cons
    ${choice('보증인원 기준','common.basis',['양가 합산','양가 각각'])}${help('양가 합산: 양가 하객을 합쳐 보증 / 양가 각각: 신랑·신부 측 각각 보증')}
    ${choice('인원 변경 가능 여부','common.changeable',['가능','불가'])}
    ${frow(choice('부가세','common.vat',['포함','별도']),choice('카드 결제 수수료','common.cardFee',['있음','없음']))}</div>
-  <div class="fsec"><header><h2>상세 정보</h2><p>필요한 항목만 펼쳐서 입력하세요. 나중에 채워도 돼요</p></header>
+  <div class="fsec plain"><header><h2>상세 정보</h2><p>필요한 항목만 펼쳐서 입력하세요. 나중에 채워도 돼요</p></header>
    ${opt('meal',choice('식사 형태','meal.type',['뷔페','코스','한상'])+frow(choice('주류 포함 여부','meal.alcohol',['포함','별도']),choice('혼주 식사 공간','meal.parentsRoom',['별도 제공','없음']))+frow(choice('시식 가능 여부','meal.tasting',['가능','불가']),fld('시식 인원','meal.tastingCount',{type:'num',suf:'명'})))}
    ${opt('hall',choice('전체적인 분위기','hallInfo.mood',['밝은 홀','어두운 홀'])+frow(fld('웨딩홀 수용인원','hallInfo.capacity',{type:'num',suf:'명',ph:'착석 기준'}),choice('로비 크기','hallInfo.lobby',['소','중','대']))+fld('기본 꽃장식 구성','hallInfo.flowers',{ph:'예) 생화, 버진로드 + 단상 장식'})+choice('화환 반입 가능 여부','hallInfo.wreath',['가능','불가']))}
    ${opt('parking',frow(fld('주차 가능 대수','parking.spots',{type:'num',suf:'대'}),fld('주차 무료 시간','parking.freeHours',{type:'num',suf:'시간'}))+choice('혼주 전용 주차','parking.parentsParking',['있음','없음'])+choice('주차 편의성','parking.convenience',['좋음','보통','나쁨','모름'])+fld('대중교통 접근성','parking.transit',{ph:'예) 2호선 강남역 도보 5분, 셔틀 운행'}))}
@@ -787,7 +806,7 @@ const A={
  formAddQuote:()=>{const last=state.draft.quotes.at(-1)||{};state.draft.quotes.push({...emptyQuote(),rental:last.rental??'',meal:last.meal??'',minGuests:last.minGuests??''});render();toast('이전 견적 금액을 미리 채워뒀어요')},
  rmQuote:el=>{state.draft.quotes.splice(+el.dataset.i,1);render()},
  tempSave:()=>{if(state.params.mode!=='new')return;try{localStorage.setItem(KEY+'-draft',JSON.stringify(state.draft));toast('임시저장했어요')}catch(e){toast('임시저장하지 못했어요')}},
- saveVenue:()=>{const d=state.draft;if(!d.name.trim()){toast('업체명을 입력해주세요');const n=$('#nameIn');if(n){n.focus();n.closest('.box').classList.add('err')}return}
+ saveVenue:()=>{const d=state.draft;if(!d.name.trim()){toast('업체명을 입력해주세요');const n=$('#nameIn');if(n){n.focus();n.closest('.hi,.box').classList.add('err')}return}
   const bad=[d.consult.time,...d.quotes.map(q=>q.weddingTime),...(d.estimates||[]).map(e=>e.time)].find(t=>t&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(t));if(bad){toast(`시간 "${bad}"을 HH:MM 형식으로 고쳐주세요`);return}
   if(d.status==='candidate'||d.status==='reserved'){const ei=(d.estimates||[]).findIndex(e=>(e.date||e.time||has(e.meal)||has(e.guests)||has(e.rental))&&(!e.date||!e.time));if(ei>=0){state.openEst=ei;render();toast(`견적 ${ei+1}의 날짜와 시간을 입력해주세요`);return}}
   if(d.estimates&&d.estimates.length>1){const key=e=>(e.date||(e.month?e.month+'-01':'9999-99-99'))+' '+(e.time||'99:99');d.estimates=d.estimates.map((e,i)=>[e,i]).sort((a,b)=>key(a[0])<key(b[0])?-1:key(a[0])>key(b[0])?1:a[1]-b[1]).map(x=>x[0])}
@@ -842,7 +861,7 @@ appEl.addEventListener('input',e=>{const t=e.target;
  if(t.dataset.path){let val=t.value;
   if(t.hasAttribute('data-num')){const d=val.replace(/[^\d]/g,'');val=d?Number(d):'';t.value=d?Number(d).toLocaleString('ko-KR'):''}
   if(t.hasAttribute('data-time')){const d=val.replace(/\D/g,'').slice(0,4);val=d.length>2?d.slice(0,2)+':'+d.slice(2):d;t.value=val;const box=t.closest('.box');box.classList.toggle('err',val.length===5&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(val))}
-  setP(state,t.dataset.path,val);if(t.id==='nameIn')t.closest('.box').classList.remove('err');updateCalcs()}
+  setP(state,t.dataset.path,val);if(t.id==='nameIn'){t.closest('.hi,.box').classList.remove('err');t.parentNode.dataset.v=t.value||'업체명'}updateCalcs()}
  if(t.hasAttribute('data-search')){state.search=t.value;$('#venueList').innerHTML=listHTML()}
  if(t.hasAttribute('data-photomemo')){const v=byId(state.params.id);v.photos[state.params.i].memo=t.value;persist(v,700)}});
 appEl.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||e.isComposing)return;
