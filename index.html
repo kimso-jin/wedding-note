@@ -21,6 +21,7 @@ svg{display:block;flex:none}
 .scroll::-webkit-scrollbar{display:none}
 .scroll>.sbar{position:sticky;top:0;z-index:21;background:var(--bg)}
 .scroll>.hd,.scroll>.topnav{position:sticky;top:46px;z-index:20;background:var(--bg)}
+.scroll>.hd.nostick{position:static}
 @media (max-width:500px){.scroll>.hd,.scroll>.topnav{top:0}}
 .sbar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px 10px 30px;font-weight:700;font-size:15px}
 .hind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;border-radius:3px;background:var(--dark);transform:translateX(-50%);z-index:60;pointer-events:none}
@@ -484,7 +485,7 @@ function listHTML(){const l=filtered();return l.length?l.map(vcard).join(''):`<d
 const SCREENS={};
 SCREENS.home=()=>{const up=upcoming();const cnt=k=>k==='all'?venues.length:k==='fav'?venues.filter(v=>v.fav).length:venues.filter(v=>v.status===k).length;
  return `<div class="scroll">${statusBar()}
- <header class="hd"><div><div class="eyebrow">우리의 웨딩홀 투어</div><h1>웨딩홀 노트</h1></div></header>
+ <header class="hd nostick"><div><div class="eyebrow">우리의 웨딩홀 투어</div><h1>웨딩홀 노트</h1></div></header>
  ${state.search!=null?`<div class="px20 pb12"><input class="search" id="searchIn" data-search placeholder="업체명, 홀, 지역으로 찾기" value="${esc(state.search)}"></div>`:''}
 ${MODE==='loading'?`<div class="empty-box">${loadNote||'불러오는 중이에요…'}</div>`:up.length?`<div class="carousel ${up.length===1?'single':''}" data-carousel>${up.map((v,i)=>`<div class="hero ${i%2?'alt':''}" data-act="open" data-id="${v.id}"><div class="row gap8"><span class="dday">${dday(v.consult.date)}</span><span class="hero-label">다음 상담 일정</span></div><div><div class="hero-name">${esc(v.name)}</div><div class="hero-sub">${esc(v.hall||'')}</div></div><div class="hero-info"><div>${I.cal} ${fmtKor(v.consult.date)} ${fmtTime(v.consult.time)}</div>${v.location?`<div>${I.pin} ${esc(v.location)}</div>`:''}</div></div>`).join('')}</div>${up.length>1?`<div class="pager">${up.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div>`:''}`
  :`<div class="px20"><button class="hero empty" data-act="newVenue">예정된 상담이 없어요<span class="dashed" style="width:auto;padding:8px 14px">${I.plus} 업체 추가하기</span></button></div>`}
