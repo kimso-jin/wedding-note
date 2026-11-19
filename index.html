@@ -584,9 +584,9 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();if
  <div class="px20 pb20 act-row"><a class="btn-outline" href="https://map.kakao.com/link/search/${encodeURIComponent(v.name||v.location||'')}" target="_blank" rel="noopener">${I.pin}카카오맵 길찾기</a></div>
  <div class="sections">
   ${coll(k('consult'),'상담 예약 정보',kv('상담 일시',consultWhen,{strong:1}),kv('상담 일시',consultWhen,{strong:1})+(c.phone?`<div class="kv"><span>연락처</span><a href="tel:${esc(c.phone.replace(/[^\d+]/g,''))}" style="font-weight:500;color:var(--rose);text-decoration:none">${esc(c.phone)}</a></div>`:kv('연락처','')),{ek:'consult'})}
-  ${v.status==='reserved'?preEstCard(v):''}
+  ${preEstCard(v)}
   ${IE('quotes')?editCard('quotes','예식일별 견적'):`<section class="card"><div class="card-hd"><h3>예식일별 견적</h3>${realQ.length?penBtn('quotes'):''}</div>${realQ.length?quotes:`<div class="q-empty"><b>아직 받은 견적이 없어요</b><span>상담에서 받은 견적을 입력하면 ${ests(v).length?'예상 견적과 나란히 비교해 보여드려요':'여기에 정리해 보여드려요'}</span></div>`}<button class="dashed" data-act="addQuote">${I.plus}${realQ.length?'다른 예식일 견적 추가':'상담에서 받은 견적 입력'}</button></section>`}
-  ${v.status==='reserved'?checklistCard(v):preEstCard(v)}
+  ${v.status==='reserved'?checklistCard(v):''}
   ${showMore?`
   ${coll(k('common'),'업체 공통 조건',sumLine([(v.options||[]).filter(o=>o.on).length&&`선택사항 ${(v.options||[]).filter(o=>o.on).length}개`,cPromo(v)&&'당일 혜택 있음',cm.basis,cm.changeable&&'인원 변경 '+cm.changeable,cm.vat&&'부가세 '+cm.vat]),`<div class="note">모든 예식일 견적에 똑같이 적용돼요</div>`+((v.options||[]).some(o=>o.on)?`<div class="lbl" style="margin-top:6px">선택사항</div>`+(v.options||[]).filter(o=>o.on).map(o=>kv('· '+esc(o.name||'이름 없음'),o.incl?'대관료 포함':(has(o.price)?won(o.price):'요금 미입력'))).join(''):kv('선택사항',''))+(cPromo(v)?para('당일 혜택 & 프로모션',cPromo(v),'var(--rose)'):'')+kv('보증인원 기준',cm.basis)+kv('인원 변경',cm.changeable)+kv('부가세',cm.vat)+kv('카드 결제 수수료',cm.cardFee)+(cm.pkg?para('패키지 구성',cm.pkg):'')+(cm.extra?para('추가 비용 발생 항목',cm.extra):''),{ek:'common'})}
   ${coll(k('meal'),'식사',sumLine([ml.type,ml.alcohol&&'주류 '+ml.alcohol,ml.tasting==='가능'?`시식 ${has(ml.tastingCount)?ml.tastingCount+'인 ':''}가능`:ml.tasting==='불가'?'시식 불가':'']),kv('식사 형태',ml.type)+kv('주류 포함 여부',ml.alcohol)+kv('혼주 식사 공간',ml.parentsRoom)+kv('시식 가능 여부',ml.tasting?ml.tasting+(ml.tasting==='가능'&&has(ml.tastingCount)?` (${ml.tastingCount}인)`:''):''),{ek:'meal'})}
