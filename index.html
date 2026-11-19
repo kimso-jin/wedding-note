@@ -411,6 +411,7 @@ const fmtMDw=s=>{const d=parseD(s);return d?`${pad2(d.getMonth()+1)}/${pad2(d.ge
 const estLabel=e=>e.date?fmtMDw(e.date)+(e.time?' '+e.time:''):(e.month?e.month.replace('-','.')+(e.time?' '+e.time:''):(e.time?'날짜 미정 · '+e.time:'날짜 미정'));
 const ests=v=>(v.estimates||[]).filter(e=>e.date||e.month||e.time||has(e.meal)||has(e.guests)||has(e.rental));
 const estTotal=e=>{const m=num(e.meal),g=num(e.guests),r=num(e.rental);return (m&&g?m*g:0)+r};
+const realQs=v=>(v.quotes||[]).filter(q=>q.weddingDate||has(q.meal)||has(q.minGuests)||has(q.rental));
 const estBk=e=>`(${won(e.meal)||'-'} × ${has(e.guests)?e.guests+'명':'-'}) + ${has(e.rental)?(num(e.rental)?man(e.rental):'0원'):'-'}`;
 const cPromo=v=>(v.common&&v.common.promo)||((v.quotes||[]).find(q=>q.promo)||{}).promo||'';
 const estSumHTML=es=>es.map((e,i)=>`<div class="est-sum"><div class="es-top"><span class="qno n blue">${i+1}</span><b class="es-t">${estLabel(e)}</b><b class="blue-t">${estTotal(e)?'약 '+manR(estTotal(e)):'-'}</b></div><div class="es-bk">${estBk(e)}</div></div>`).join('');
@@ -590,7 +591,7 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();if
   ${showMore?`
   ${coll(k('common'),'업체 공통 조건',sumLine([(v.options||[]).filter(o=>o.on).length&&`선택사항 ${(v.options||[]).filter(o=>o.on).length}개`,cPromo(v)&&'당일 혜택 있음',cm.basis,cm.changeable&&'인원 변경 '+cm.changeable,cm.vat&&'부가세 '+cm.vat]),`<div class="note">모든 예식일 견적에 똑같이 적용돼요</div>`+((v.options||[]).some(o=>o.on)?`<div class="lbl" style="margin-top:6px">선택사항</div>`+(v.options||[]).filter(o=>o.on).map(o=>kv('· '+esc(o.name||'이름 없음'),o.incl?'대관료 포함':(has(o.price)?won(o.price):'요금 미입력'))).join(''):kv('선택사항',''))+(cPromo(v)?para('당일 혜택 & 프로모션',cPromo(v),'var(--rose)'):'')+kv('보증인원 기준',cm.basis)+kv('인원 변경',cm.changeable)+kv('부가세',cm.vat)+kv('카드 결제 수수료',cm.cardFee)+(cm.pkg?para('패키지 구성',cm.pkg):'')+(cm.extra?para('추가 비용 발생 항목',cm.extra):''),{ek:'common'})}
   ${coll(k('meal'),'식사',sumLine([ml.type,ml.alcohol&&'주류 '+ml.alcohol,ml.tasting==='가능'?`시식 ${has(ml.tastingCount)?ml.tastingCount+'인 ':''}가능`:ml.tasting==='불가'?'시식 불가':'']),kv('식사 형태',ml.type)+kv('주류 포함 여부',ml.alcohol)+kv('혼주 식사 공간',ml.parentsRoom)+kv('시식 가능 여부',ml.tasting?ml.tasting+(ml.tasting==='가능'&&has(ml.tastingCount)?` (${ml.tastingCount}인)`:''):''),{ek:'meal'})}
-  ${coll(k('hall'),'홀 정보',sumLine([hl.mood,has(hl.capacity)&&'착석 '+hl.capacity+'명',hl.lobby&&'로비 '+hl.lobby]),kv('전체적인 분위기',hl.mood)+kv('웨딩홀 수용인원',has(hl.capacity)?hl.capacity+'명 (착석)':'')+kv('로비 크기',hl.lobby)+kv('화환 반입',hl.wreath)+para('기본 꽃장식 구성',hl.flowers),{ek:'hall'})}
+  ${coll(k('hall'),'홀 정보',sumLine([hl.mood,has(hl.capacity)&&'착석 '+hl.capacity+'명',has(hl.interval)&&'예식 간격 '+hl.interval+'분',hl.lobby&&'로비 '+hl.lobby]),kv('전체적인 분위기',hl.mood)+kv('웨딩홀 수용인원',has(hl.capacity)?hl.capacity+'명 (착석)':'')+kv('예식 간격',has(hl.interval)?hl.interval+'분':'')+kv('로비 크기',hl.lobby)+kv('화환 반입',hl.wreath)+para('기본 꽃장식 구성',hl.flowers),{ek:'hall'})}
   ${coll(k('parking'),'주차 · 교통',sumLine([has(pk.spots)&&pk.spots+'대',has(pk.freeHours)&&pk.freeHours+'시간 무료',pk.parentsParking&&'혼주 전용 '+pk.parentsParking]),kv('주차 가능 대수',has(pk.spots)?pk.spots+'대':'')+kv('주차 무료 시간',has(pk.freeHours)?pk.freeHours+'시간':'')+kv('혼주 전용 주차',pk.parentsParking)+kv('주차 편의성',pk.convenience)+para('대중교통 접근성',pk.transit),{ek:'parking'})}
   ${coll(k('payment'),'계약 · 결제 조건',sumLine([has(pm.deposit)&&'계약금 '+man(pm.deposit),has(pm.balance)&&'잔금 '+man(pm.balance)]),kv('계약금',won(pm.deposit))+kv('중도금',won(pm.middle))+kv('잔금',won(pm.balance))+para('환불 조건',pm.refund),{ek:'payment'})}
   ${IE('pros')?editCard('pros','좋았던 점 · 아쉬운 점'):`<section class="card"><div class="card-hd"><h3>좋았던 점 · 아쉬운 점</h3>${penBtn('pros')}</div>
@@ -604,7 +605,7 @@ SCREENS.detail=()=>{const v=byId(state.params.id);if(!v)return SCREENS.home();if
 
 /* ===================== FORM ===================== */
 const OPT_SECS={meal:['식사','시식이 가능하면 인원도 함께 적어두세요',['meal.type','meal.alcohol','meal.parentsRoom','meal.tasting','meal.tastingCount']],
- hall:['홀 정보','직접 둘러보고 느낀 홀 정보를 남겨요',['hallInfo.mood','hallInfo.capacity','hallInfo.lobby','hallInfo.flowers','hallInfo.wreath']],
+ hall:['홀 정보','직접 둘러보고 느낀 홀 정보를 남겨요',['hallInfo.mood','hallInfo.capacity','hallInfo.interval','hallInfo.lobby','hallInfo.flowers','hallInfo.wreath']],
  parking:['주차 · 교통','하객이 오가기 편한지 확인해요',['parking.spots','parking.freeHours','parking.parentsParking','parking.convenience','parking.transit']],
  payment:['계약 · 결제 조건','계약 전에 꼭 확인해야 할 조건이에요',['payment.deposit','payment.middle','payment.balance','payment.refund']]};
 const D=p=>getP(state.draft,p);
@@ -642,7 +643,7 @@ function quotesFormHTML(){const d=state.draft;return d.quotes.map((q,i)=>`<div c
   ${frow(fld('식대 (1인)',`quotes.${i}.meal`,{type:'num',suf:'원'}),fld('최소 보증인원',`quotes.${i}.minGuests`,{type:'num',suf:'명'}))}
   <div class="fld"><span class="lbl">총 식대 (자동 계산)</span><div class="box ro"><span class="inp" style="color:var(--gray)" data-calc="meal" data-i="${i}">${fmtNum(calcQ(d,q).totalMeal)||'0'}</span><span class="suf" style="color:var(--light)">원</span></div></div>${help('식대(1인) × 최소 보증인원으로 자동 입력돼요')}
   <div class="est" data-calc="est" data-i="${i}">${estHTML(i)}</div></div>`).join('')}
-const OPT_BODY={meal:()=>choice('식사 형태','meal.type',['뷔페','코스','한상'])+frow(choice('주류 포함 여부','meal.alcohol',['포함','별도']),choice('혼주 식사 공간','meal.parentsRoom',['별도 제공','없음']))+frow(choice('시식 가능 여부','meal.tasting',['가능','불가']),fld('시식 인원','meal.tastingCount',{type:'num',suf:'명'})),hall:()=>choice('전체적인 분위기','hallInfo.mood',['밝은 홀','어두운 홀'])+frow(fld('웨딩홀 수용인원','hallInfo.capacity',{type:'num',suf:'명',ph:'착석 기준'}),choice('로비 크기','hallInfo.lobby',['소','중','대']))+fld('기본 꽃장식 구성','hallInfo.flowers',{ph:'예) 생화, 버진로드 + 단상 장식'})+choice('화환 반입 가능 여부','hallInfo.wreath',['가능','불가']),parking:()=>frow(fld('주차 가능 대수','parking.spots',{type:'num',suf:'대'}),fld('주차 무료 시간','parking.freeHours',{type:'num',suf:'시간'}))+choice('혼주 전용 주차','parking.parentsParking',['있음','없음'])+choice('주차 편의성','parking.convenience',['좋음','보통','나쁨','모름'])+fld('대중교통 접근성','parking.transit',{ph:'예) 2호선 강남역 도보 5분, 셔틀 운행'}),payment:()=>fld('계약금','payment.deposit',{type:'num',suf:'원'})+fld('중도금','payment.middle',{type:'num',suf:'원'})+fld('잔금','payment.balance',{type:'num',suf:'원'})+area('환불 조건','payment.refund','예) 예식 90일 전 취소 시 계약금 전액 환불')};
+const OPT_BODY={meal:()=>choice('식사 형태','meal.type',['뷔페','코스','한상'])+frow(choice('주류 포함 여부','meal.alcohol',['포함','별도']),choice('혼주 식사 공간','meal.parentsRoom',['별도 제공','없음']))+frow(choice('시식 가능 여부','meal.tasting',['가능','불가']),fld('시식 인원','meal.tastingCount',{type:'num',suf:'명'})),hall:()=>choice('전체적인 분위기','hallInfo.mood',['밝은 홀','어두운 홀'])+frow(fld('웨딩홀 수용인원','hallInfo.capacity',{type:'num',suf:'명',ph:'착석 기준'}),fld('예식 간격','hallInfo.interval',{type:'num',suf:'분'}))+choice('로비 크기','hallInfo.lobby',['소','중','대'])+fld('기본 꽃장식 구성','hallInfo.flowers',{ph:'예) 생화, 버진로드 + 단상 장식'})+choice('화환 반입 가능 여부','hallInfo.wreath',['가능','불가']),parking:()=>frow(fld('주차 가능 대수','parking.spots',{type:'num',suf:'대'}),fld('주차 무료 시간','parking.freeHours',{type:'num',suf:'시간'}))+choice('혼주 전용 주차','parking.parentsParking',['있음','없음'])+choice('주차 편의성','parking.convenience',['좋음','보통','나쁨','모름'])+fld('대중교통 접근성','parking.transit',{ph:'예) 2호선 강남역 도보 5분, 셔틀 운행'}),payment:()=>fld('계약금','payment.deposit',{type:'num',suf:'원'})+fld('중도금','payment.middle',{type:'num',suf:'원'})+fld('잔금','payment.balance',{type:'num',suf:'원'})+area('환불 조건','payment.refund','예) 예식 90일 전 취소 시 계약금 전액 환불')};
 function heroHTML(){const d=state.draft;return `<div class="hero-in"><div class="hi name"><span class="grow" data-v="${esc(d.name||'업체명')}"><input class="inp" size="1" id="nameIn" data-path="draft.name" placeholder="업체명" value="${esc(d.name)}"></span><i>*</i></div><div class="hi"><input class="inp" data-path="draft.hall" placeholder="홀 이름 (예: 그랜드홀)" value="${esc(d.hall)}"></div><button type="button" class="hi loc" data-act="openAddr" data-path="draft.location">${d.location?`<span>${esc(d.location)}</span>`:`<span class="ph">위치 검색 (도로명, 건물명)</span>`}${I.search}</button></div>`}
 function checkEditor(){return `<div class="fsec"><header><h2>상담 때 물어볼 것</h2><p>상담 갈 때 체크리스트로 보여드려요</p></header>${checkBody()}</div>`}
 function checkBody(){const list=state.draft.checklist;return `<div class="tagbox">${list.map((c,i)=>`<span class="tag" style="background:var(--bg);color:var(--dark)">${esc(c.text)}<button type="button" data-act="rmCheck" data-i="${i}" aria-label="삭제">×</button></span>`).join('')}<input data-checkinput placeholder="입력 후 엔터로 추가" enterkeyhint="done"></div>
@@ -766,18 +767,18 @@ function sheetHTML(){const s=state.sheet;if(!s)return '';let body='';
  if(s.type==='more')body=`<button class="menu-item danger" data-act="askDelVenue">${I.trash}삭제</button>`;
  if(s.type==='confirm')body=`<div class="sheet-hd"><h3>${s.title}</h3></div><p style="font-size:14px;color:var(--gray);line-height:1.5">${s.desc}</p><div class="frow"><button class="btn-sub" data-act="closeSheet">취소</button><button class="btn-primary" style="background:#C2554A" data-act="${s.ok}">${s.okLabel}</button></div>`;
  if(s.type==='cmpAdd'){const opts=venues.filter(v=>!state.compareIds.includes(v.id));body=`<div class="sheet-hd"><h3>비교할 업체 추가</h3><button data-act="closeSheet">${I.x}</button></div>${opts.map(v=>`<button class="menu-item" data-act="cmpPick" data-id="${v.id}">${badge(v.status)}<span>${esc(v.name)}</span></button>`).join('')||'<p class="summary none">추가할 업체가 없어요</p>'}`}
- if(s.type==='quote'){const v=byId(s.vid);const q=s.q;const t=calcQ(v,q);const prev=v.quotes.at(-1);const pt=prev?calcQ(v,prev).total:0;const diff=t.total&&pt?t.total-pt:0;
+ if(s.type==='quote'){const v=byId(s.vid);const q=s.q;const t=calcQ(v,q);const rq=realQs(v),n=rq.length;const prev=rq.at(-1);const pt=prev?calcQ(v,prev).total:0;const diff=t.total&&pt?t.total-pt:0;
   const box=(label,path,o={})=>{const val=getP(state,path);let input;
    if(o.type==='date')input=`<button type="button" class="inp" data-act="pickDate" data-path="${path}" data-label="${label}">${val?fmtFull(val):'<span class="ph">YYYY.MM.DD</span>'}</button>${I.cal}`;
    else if(o.type==='time')input=`<input class="inp" data-path="${path}" data-time inputmode="numeric" maxlength="5" placeholder="HH:MM" value="${esc(val)}">${I.clock}`;
    else if(o.type==='num')input=`<input class="inp" data-path="${path}" data-num inputmode="numeric" placeholder="0" value="${fmtNum(val)}"><span class="suf">${o.suf}</span>`;
    else input=`<input class="inp" data-path="${path}" placeholder="${o.ph||''}" value="${esc(val)}">`;
    return `<div class="fld"><span class="lbl">${label}</span><div class="box">${input}</div></div>`};
-  body=`<div class="sheet-hd"><h3>견적 ${v.quotes.length+1} 추가</h3><button data-act="closeSheet">${I.x}</button></div>
-  <p class="note" style="margin-top:-8px">견적 ${v.quotes.length}의 금액을 미리 채워뒀어요. 달라진 칸만 고쳐주세요</p>
+  body=`<div class="sheet-hd"><h3>${n?`견적 ${n+1} 추가`:'상담에서 받은 견적 입력'}</h3><button data-act="closeSheet">${I.x}</button></div>
+  ${n?`<p class="note" style="margin-top:-8px">견적 ${n}의 금액을 미리 채워뒀어요. 달라진 칸만 고쳐주세요</p>`:''}
   ${frow(box('희망 예식일','sheet.q.weddingDate',{type:'date'}),box('예식 시간','sheet.q.weddingTime',{type:'time'}))}
   ${box('대관료','sheet.q.rental',{type:'num',suf:'원'})}${frow(box('식대 (1인)','sheet.q.meal',{type:'num',suf:'원'}),box('최소 보증인원','sheet.q.minGuests',{type:'num',suf:'명'}))}
-  <div class="est" data-calc="sheetEst"><div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${v.quotes.length}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}</div>
+  <div class="est" data-calc="sheetEst"><div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${n}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}</div>
   <button class="btn-primary" data-act="saveQuote">견적 추가하기</button>`}
  return `<div class="overlay" data-act="closeSheet"><div class="sheet"><div class="grab"></div>${body}</div></div>`}
 function pickerHTML(){const p=state.picker;if(!p)return '';
@@ -796,8 +797,8 @@ function updateCalcs(){document.querySelectorAll('[data-calc]').forEach(el=>{con
  if(k==='meal'){el.textContent=fmtNum(calcQ(state.draft,state.draft.quotes[i]).totalMeal)||'0'}
  if(k==='est'){el.innerHTML=estHTML(i)}
  if(k==='candEst'){el.innerHTML=candEstHTML(i)}
- if(k==='sheetEst'){const v=byId(state.sheet.vid);const t=calcQ(v,state.sheet.q);const prev=v.quotes.at(-1);const pt=prev?calcQ(v,prev).total:0;const diff=t.total&&pt?t.total-pt:0;
-  el.innerHTML=`<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${v.quotes.length}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}`}});
+ if(k==='sheetEst'){const v=byId(state.sheet.vid);const t=calcQ(v,state.sheet.q);const rq=realQs(v);const prev=rq.at(-1);const pt=prev?calcQ(v,prev).total:0;const diff=t.total&&pt?t.total-pt:0;
+  el.innerHTML=`<div class="top"><b>예상 총 금액</b><b>${won(t.total)||'0원'}</b></div><div class="r"><span>총 식대</span><span>${won(t.totalMeal)||'0원'}</span></div>${diff?`<div class="r"><span>견적 ${rq.length}보다</span><span style="color:var(--rose);font-weight:700">${diff>0?'+':''}${diff.toLocaleString('ko-KR')}원</span></div>`:''}`}});
  if(state.screen==='form')Object.keys(OPT_SECS).forEach(k=>{const el=$(`[data-prog="${k}"]`);if(el){const [a,b]=progOf(k);el.textContent=`${a}/${b} 입력`;el.classList.toggle('full',a===b)}})}
 
 /* ===================== actions ===================== */
@@ -825,9 +826,9 @@ const A={
   if(state.screen==='home'){if(!venues.length)state.manage=false;render()}else{state.manage=false;tab('home')}toast('업체를 삭제했어요')},
  addMemo:()=>{const inp=$('#quickMemo');const t=inp.value.trim();if(!t)return inp.focus();const v=byId(state.params.id);v.memos.push({id:uid(),date:todayStr,text:t});persist(v);render();toast('메모를 남겼어요')},
  delMemo:el=>{const v=byId(state.params.id);v.memos=v.memos.filter(m=>m.id!==el.dataset.mid);persist(v);render()},
- addQuote:()=>{const v=byId(state.params.id);const last=v.quotes.at(-1)||{};state.sheet={type:'quote',vid:v.id,q:{...emptyQuote(),rental:last.rental??'',meal:last.meal??'',minGuests:last.minGuests??''}};render()},
+ addQuote:()=>{const v=byId(state.params.id);const last=realQs(v).at(-1)||{};state.sheet={type:'quote',vid:v.id,q:{...emptyQuote(),rental:last.rental??'',meal:last.meal??'',minGuests:last.minGuests??''}};render()},
  saveQuote:()=>{const v=byId(state.sheet.vid);const q=state.sheet.q;if(!q.weddingDate){toast('희망 예식일을 골라주세요');return}if(q.weddingTime&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(q.weddingTime)){toast('시간은 HH:MM 형식으로 입력해주세요');return}
-  if(v.quotes.length===1&&!v.quotes[0].weddingDate&&!has(v.quotes[0].meal))v.quotes=[];v.quotes.push(q);persist(v);state.sheet=null;render();toast(`견적 ${v.quotes.length}을 추가했어요`)},
+  v.quotes=realQs(v);v.quotes.push(q);persist(v);state.sheet=null;render();toast(`견적 ${v.quotes.length}을 추가했어요`)},
  // form
  choose:el=>{const p=el.dataset.path,val=el.dataset.val;const cur=getP(state,p);setP(state,p,cur===val?'':val);el.parentElement.querySelectorAll('.opt').forEach(b=>b.classList.toggle('on',b.dataset.val===getP(state,p)));updateCalcs()},
  setStatus:el=>{state.draft.status=el.dataset.k;if(el.dataset.k==='reserved'&&ests(state.draft).length)state.openEst=-1;render()},
